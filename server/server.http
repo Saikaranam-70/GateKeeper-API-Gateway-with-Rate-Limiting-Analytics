@@ -1,0 +1,30 @@
+@server_HostAddress = http://localhost:5041
+
+### 1. Test Dummy End-to-End API (Queries DB time & Increments Redis hit counter)
+GET {{server_HostAddress}}/api/dummy
+Accept: application/json
+
+### 2. Test Exception Handling Middleware (Triggers BadRequestException via Query Param)
+GET {{server_HostAddress}}/api/dummy?triggerError=true
+Accept: application/json
+
+### 3. Register User
+POST {{server_HostAddress}}/api/user/register
+Content-Type: application/json
+Accept: application/json
+
+{
+  "name": "Sai Karanam",
+  "email": "saikaranam99@gmail.com",
+  "password": "Sai@7065"
+}
+
+### 4. Login User
+POST {{server_HostAddress}}/api/user/login
+Content-Type: application/json
+Accept: application/json
+
+{
+  "email": "saikaranam99@gmail.com",
+  "password": "Sai@7065"
+}

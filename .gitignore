@@ -1,0 +1,27 @@
+# Node / Angular
+node_modules/
+dist/
+/.angular/
+npm-debug.log*
+package-lock.json
+yarn.lock
+.env
+
+# VS Code
+/.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# .NET
+/bin/
+/obj/
+user_files/
+
+# Visual Studio
+.vs/
+
+# Logs
+logs/
+debug.log

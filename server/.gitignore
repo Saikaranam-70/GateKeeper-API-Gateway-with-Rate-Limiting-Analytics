@@ -1,0 +1,50 @@
+# .NET / ASP.NET Core
+/bin/
+/obj/
+/publish/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+.vs/
+*.nupkg
+*.snk
+
+# Runtime files
+*.pid
+*.seed
+logs/
+TestResults/
+
+# User secrets and local settings
+secrets.json
+appsettings.*.Development.json
+appsettings.Local.json
+local.settings.json
+appsettings.json
+
+# Build / publish outputs
+artifacts/
+*.zip
+
+# NuGet
+# Packages directory used by older NuGet
+packages/
+
+# Visual Studio Code
+/.vscode/
+
+# Rider/IDE
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Coverage
+coverage/
+*.coverage
+*.coveragexml
+
+# Logs
+*.log
