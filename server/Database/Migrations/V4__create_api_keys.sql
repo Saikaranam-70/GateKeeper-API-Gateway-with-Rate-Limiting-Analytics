@@ -1,6 +1,6 @@
 CREATE TABLE api_keys (
-  id           BIGSERIAL    PRIMARY KEY,
-  gateway_id   BIGINT       NOT NULL,
+  id           UUID         PRIMARY KEY DEFAULT gen_random_uuid(),
+  gateway_id   UUID         NOT NULL,
   key_hash     VARCHAR(500) NOT NULL,
   key_prefix   VARCHAR(20)  NOT NULL,
   label        VARCHAR(100) NULL,

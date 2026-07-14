@@ -14,9 +14,9 @@ public class JwtService : IJwtService
     {
         var claims = new[]
         {
-            new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
+            new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()), // Guid UUID
             new Claim(JwtRegisteredClaimNames.Email, user.Email),
-            new Claim(ClaimTypes.Role, user.Role.ToString()),
+            new Claim(ClaimTypes.Role, user.Role),                      // string role from DB
             new Claim(ClaimTypes.Name, user.Name)
         };
 

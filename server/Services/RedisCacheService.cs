@@ -47,9 +47,10 @@ namespace GateKeeper.Services
             try
             {
                 var json = JsonSerializer.Serialize(value);
-                // Attempt to use Expiration conversion
-                Expiration redisExpiry = expiration.HasValue ? (Expiration)expiration.Value : default;
-                await Database.StringSetAsync(key, json, redisExpiry);
+                if (expiration.HasValue)
+                    await Database.StringSetAsync(key, json, expiration.Value);
+                else
+                    await Database.StringSetAsync(key, json);
                 _logger.LogInformation($"Successfully cached key: {key}");
             }
             catch (Exception ex)

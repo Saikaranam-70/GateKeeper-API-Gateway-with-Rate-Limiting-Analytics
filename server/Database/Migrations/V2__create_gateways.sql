@@ -1,7 +1,8 @@
+CREATE EXTENSION IF NOT EXISTS "pgcrypto";
+
 CREATE TABLE gateways (
-  id                        BIGSERIAL    PRIMARY KEY,
+  id                        UUID         PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id                   UUID         NOT NULL,
-  gateway_uid               VARCHAR(50)  NOT NULL,
   name                      VARCHAR(200) NOT NULL,
   description               VARCHAR(500) NULL,
   target_base_url           VARCHAR(500) NOT NULL,
@@ -12,5 +13,4 @@ CREATE TABLE gateways (
   CONSTRAINT fk_gateways_users
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
-CREATE UNIQUE INDEX ix_gateways_uid ON gateways(gateway_uid);
 CREATE INDEX ix_gateways_user_id ON gateways(user_id);

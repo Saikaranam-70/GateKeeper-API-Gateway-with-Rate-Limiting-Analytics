@@ -1,4 +1,8 @@
 @server_HostAddress = http://localhost:5041
+@gatewayId = YOUR_GATEWAY_UUID_HERE
+
+# Paste your JWT token from Login response here
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI3NTdkMzUwNy1kOWI1LTQ2OGUtYjRmOC02ZWY4NWFlNzNkNDIiLCJlbWFpbCI6InNhaWthcmFuYW05QGdtYWlsLmNvbSIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6IlVTRVIiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1lIjoiU2FpIEthcmFuYW0iLCJleHAiOjE3ODM5NDQ4NzQsImlzcyI6IkdhdGVLZWVwZXIiLCJhdWQiOiJHYXRlS2VlcGVyVXNlcnMifQ.mavRkxsgQrKTN_WJCDD9WlSxeRVOUz-G5khCP9sf0BY
 
 ### 1. Test Dummy End-to-End API (Queries DB time & Increments Redis hit counter)
 GET {{server_HostAddress}}/api/dummy
@@ -15,7 +19,7 @@ Accept: application/json
 
 {
   "name": "Sai Karanam",
-  "email": "saikaranam99@gmail.com",
+  "email": "saikaranam9@gmail.com",
   "password": "Sai@7065"
 }
 
@@ -25,6 +29,44 @@ Content-Type: application/json
 Accept: application/json
 
 {
-  "email": "saikaranam99@gmail.com",
+  "email": "saikaranam9@gmail.com",
   "password": "Sai@7065"
 }
+
+### 5. Get Current User Profile (JWT Protected)
+GET {{server_HostAddress}}/api/auth/me
+Accept: application/json
+Authorization: Bearer {{token}}
+
+
+### 6. Create Gateway (JWT required)
+POST {{server_HostAddress}}/api/gateways
+Content-Type: application/json
+Authorization: Bearer {{token}}
+{
+  "name": "Payment Service Gateway",
+  "description": "Proxies payment and refund services",
+  "targetBaseUrl": "https://payments.internal:8080",
+  "defaultRateLimitPerMin": 100,
+  "routes": [
+    { "path": "/payments/{**catch-all}", "methods": ["GET","POST"], "stripPrefix": false },
+    { "path": "/refunds/{**catch-all}",  "methods": ["POST"],       "stripPrefix": true  }
+  ]
+}
+### 7. Get All My Gateways
+GET {{server_HostAddress}}/api/gateways
+Authorization: Bearer {{token}}
+### 8. Get Gateway by ID
+GET {{server_HostAddress}}/api/gateways/{{gatewayId}}
+Authorization: Bearer {{token}}
+### 9. Update Gateway
+PUT {{server_HostAddress}}/api/gateways/{{gatewayId}}
+Content-Type: application/json
+Authorization: Bearer {{token}}
+{
+  "name": "Updated Payment Gateway",
+  "status": "inactive"
+}
+### 10. Delete Gateway
+DELETE {{server_HostAddress}}/api/gateways/{{gatewayId}}
+Authorization: Bearer {{token}}

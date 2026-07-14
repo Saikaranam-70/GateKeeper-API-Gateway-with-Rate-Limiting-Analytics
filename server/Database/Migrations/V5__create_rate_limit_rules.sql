@@ -1,8 +1,8 @@
 CREATE TABLE rate_limit_rules (
-  id                  BIGSERIAL    PRIMARY KEY,
-  gateway_id          BIGINT       NOT NULL,
+  id                  UUID         PRIMARY KEY DEFAULT gen_random_uuid(),
+  gateway_id          UUID         NOT NULL,
   scope               VARCHAR(20)  NOT NULL,
-  api_key_id          BIGINT       NULL,
+  api_key_id          UUID         NULL,
   requests_per_window INT          NOT NULL,
   window_seconds      INT          NOT NULL,
   algorithm           VARCHAR(30)  NOT NULL DEFAULT 'sliding-window',

@@ -1,5 +1,6 @@
 public interface IUserRepository
 {
-    Task<long> CreateAsync(User user);
+    Task<Guid> CreateAsync(User user);
     Task<User?> GetByEmailAsync(string email);
-}
+    Task<User?> GetByIdAsync(Guid id);
+}
