@@ -1,4 +1,4 @@
-CREATE TABLE alerts (
+CREATE TABLE IF NOT EXISTS alerts (
   id                UUID           PRIMARY KEY DEFAULT gen_random_uuid(),
   gateway_id        UUID           NOT NULL,
   name              VARCHAR(200)   NOT NULL,

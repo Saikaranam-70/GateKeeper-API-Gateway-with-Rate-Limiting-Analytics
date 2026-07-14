@@ -2,7 +2,7 @@
 @gatewayId = YOUR_GATEWAY_UUID_HERE
 
 # Paste your JWT token from Login response here
-@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI3NTdkMzUwNy1kOWI1LTQ2OGUtYjRmOC02ZWY4NWFlNzNkNDIiLCJlbWFpbCI6InNhaWthcmFuYW05QGdtYWlsLmNvbSIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6IlVTRVIiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1lIjoiU2FpIEthcmFuYW0iLCJleHAiOjE3ODM5NDQ4NzQsImlzcyI6IkdhdGVLZWVwZXIiLCJhdWQiOiJHYXRlS2VlcGVyVXNlcnMifQ.mavRkxsgQrKTN_WJCDD9WlSxeRVOUz-G5khCP9sf0BY
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI3NTdkMzUwNy1kOWI1LTQ2OGUtYjRmOC02ZWY4NWFlNzNkNDIiLCJlbWFpbCI6InNhaWthcmFuYW05QGdtYWlsLmNvbSIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6IlVTRVIiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1lIjoiU2FpIEthcmFuYW0iLCJleHAiOjE3ODQwNTA1MDcsImlzcyI6IkdhdGVLZWVwZXIiLCJhdWQiOiJHYXRlS2VlcGVyVXNlcnMifQ.9cYKrswg0O6ZJjMyFR8WxpvPThk8qU97Tge_WG_Ze-M
 
 ### 1. Test Dummy End-to-End API (Queries DB time & Increments Redis hit counter)
 GET {{server_HostAddress}}/api/dummy
@@ -43,6 +43,7 @@ Authorization: Bearer {{token}}
 POST {{server_HostAddress}}/api/gateways
 Content-Type: application/json
 Authorization: Bearer {{token}}
+
 {
   "name": "Payment Service Gateway",
   "description": "Proxies payment and refund services",
