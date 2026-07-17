@@ -43,4 +43,19 @@ public class GatewayRequestDTO
         public List<string> Methods { get; set; } = new(); // ["GET","POST"]
         public bool StripPrefix { get; set; } = false;
     }
+
+    public class UpdateRouteRequestDTO
+    {
+        [Required]
+        [MaxLength(500)]
+        public string Path {get; set;} = string.Empty;
+
+        [Required]
+        public List<string> Methods {get; set;} = new();
+
+        public bool StripPrefix {get; set;} = false;
+
+        public bool IsActive {get; set;} = true;
+    }
+    
 }

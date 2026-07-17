@@ -79,4 +79,48 @@ public class GatewayRepository : IGatewayRepository
         var count = await connection.ExecuteScalarAsync<int>(sql, new { Id = id, UserId = userId });
         return count > 0;
     }
+
+    public async Task<RouteConfig?> AddRouteAsync(RouteConfig route)
+    {
+        using var connection = _factory.CreateConnection();
+        var sql = @"INSERT INTO route_configs (gateway_id, path, methods, strip_prefix, is_active) VALUES (@GatewayId, @Path, @Methods, @StripPrefix, @IsActive) RETURNING
+        id, gateway_id, path, methods, strip_prefix, is_active, created_at";
+
+        return await connection.QuerySingleAsync<RouteConfig>(sql, route);
+    }
+
+    public async Task<RouteConfig?> GetRoutesByIdAsync(Guid routeId)
+    {
+        using var connection = _factory.CreateConnection();
+        var sql = "SELECT * FROM route_configs WHERE id = @Id";
+        return await connection.QueryFirstOrDefaultAsync<RouteConfig>(sql, new {Id = routeId});
+    }
+
+    public async Task DeleteRouteAsync(Guid routeId)
+    {
+        using var connection = _factory.CreateConnection();
+        var sql = "DELETE FROM route_configs WHERE id = @Id";
+        await connection.ExecuteAsync(sql, new { Id = routeId });
+    }
+
+    public async Task<IEnumerable<RouteConfig>> GetAllRoutesByGatewayIdAsync(Guid id)
+    {
+        using var connection = _factory.CreateConnection();
+        var sql = "SELECT * FROM route_configs WHERE gateway_id = @GatewayId ORDER BY created_at DESC";
+        return await connection.QueryAsync<RouteConfig>(sql, new {GatewayId = id});
+    }
+
+    public async Task UpdateRouteAsync(RouteConfig route)
+    {
+        using var connection = _factory.CreateConnection();
+        var sql = @"
+            UPDATE route_configs
+            SET path         = @Path,
+                methods      = @Methods,
+                strip_prefix = @StripPrefix,
+                is_active    = @IsActive
+            WHERE id = @Id AND gateway_id = @GatewayId";
+        await connection.ExecuteAsync(sql, route);
+    }
+
 }

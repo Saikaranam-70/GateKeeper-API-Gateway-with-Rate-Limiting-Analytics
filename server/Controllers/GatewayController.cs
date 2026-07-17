@@ -76,6 +76,52 @@ public class GatewayController: ControllerBase
         return NoContent();
     }
 
+    [HttpGet("{id:guid}/routes")]
+    public async Task<IActionResult> GetRoutes(Guid id)
+    {
+        var userId = GetUserId();
+        if(userId == Guid.Empty) return Unauthorized();
+
+        var routes = await _service.GetGatewayRoutesAsync(id, userId);
+        return Ok(routes);
+    }
+
+    [HttpPost("{id:guid}/routes")]
+    public async Task<IActionResult> AddRoute(Guid id, [FromBody] GatewayRequestDTO.RouteConfigRequestDTO request)
+    {
+        if(!ModelState.IsValid) return BadRequest(ModelState);
+
+        var userId = GetUserId();
+        if(userId == Guid.Empty) return Unauthorized();
+
+        var createdRoute = await _service.AddRouteAsync(id, request, userId);
+        return StatusCode(201, createdRoute);
+    }
+
+    [HttpPut("{id:guid}/routes/{routeId:guid}")]
+    public async Task<IActionResult> UpdateRoute(Guid id, Guid routeId, [FromBody] GatewayRequestDTO.UpdateRouteRequestDTO request)
+    {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+
+        var userId = GetUserId();
+        if(userId == Guid.Empty) return Unauthorized();
+
+        var updateRoute = await _service.UpdateRouteAsync(id, routeId, request, userId);
+        return Ok(updateRoute);
+    }
+
+    [HttpDelete("{id:guid}/routes/{routeId:guid}")]
+    public async Task<IActionResult> DeleteRoute(Guid id, Guid routeId)
+    {
+        var userId = GetUserId();
+        if(userId == Guid.Empty) return Unauthorized();
+
+        await _service.DeleteRouteAsync(id, routeId, userId);
+        return NoContent();
+    }
 
     
 }

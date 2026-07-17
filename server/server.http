@@ -71,3 +71,40 @@ Authorization: Bearer {{token}}
 ### 10. Delete Gateway
 DELETE {{server_HostAddress}}/api/gateways/{{gatewayId}}
 Authorization: Bearer {{token}}
+
+### 11. Get Gateway Routes
+GET {{server_HostAddress}}/api/gateways/{{gatewayId}}/routes
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### 12. Add Route to Gateway
+POST {{server_HostAddress}}/api/gateways/{{gatewayId}}/routes
+Content-Type: application/json
+Accept: application/json
+Authorization: Bearer {{token}}
+
+{
+  "path": "/payments/{**catch-all}",
+  "methods": ["GET","POST"],
+  "stripPrefix": false
+}
+
+### 13. Update Route on Gateway
+PUT {{server_HostAddress}}/api/gateways/{{gatewayId}}/routes/{{routeId}}
+Content-Type: application/json
+Accept: application/json
+Authorization: Bearer {{token}}
+
+{
+  "path": "/payments/{**catch-all}",
+  "methods": ["GET","POST"],
+  "stripPrefix": false,
+  "isActive": true
+}
+
+### 14. Delete Route from Gateway
+DELETE {{server_HostAddress}}/api/gateways/{{gatewayId}}/routes/{{routeId}}
+Accept: application/json
+Authorization: Bearer {{token}}
+
+@routeId = YOUR_ROUTE_UUID_HERE

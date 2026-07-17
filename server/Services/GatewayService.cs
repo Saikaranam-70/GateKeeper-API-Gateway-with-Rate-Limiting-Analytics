@@ -1,5 +1,7 @@
+using GateKeeper.Exceptions;
 using GateKeeper.Models.Entities;
 using GateKeeper.Services;
+using Microsoft.AspNetCore.Http.HttpResults;
 
 public class GatewayService : IGatewayService
 {
@@ -128,12 +130,12 @@ public class GatewayService : IGatewayService
 
         await _repository.DeleteAsync(id);
 
-        // Invalidate both caches
+
         await _cache.RemoveAsync($"{GatewayCachePrefix}{id}");
         await _cache.RemoveAsync($"{UserGatewayListPrefix}{userId}");
     }
 
-    // ── Private Mapper ───────────────────────────────────────────────────────
+
     private static GatewayResponseDTO MapToDTO(Gateway g, IEnumerable<RouteConfig> routes)
     {
         return new GatewayResponseDTO
@@ -156,4 +158,107 @@ public class GatewayService : IGatewayService
             }).ToList()
         };
     }
+
+    public async Task<RouteConfigResponseDTO> AddRouteAsync(Guid id, GatewayRequestDTO.RouteConfigRequestDTO request, Guid userId)
+    {
+        var isOwner = await _repository.ExistsForUserAsync(id, userId);
+        if (!isOwner)
+        {
+            throw new NotFoundException("Gateway not found.");
+        }
+        var route = new RouteConfig
+        {
+            GatewayId = id,
+            Path = request.Path,
+            Methods = string.Join(",", request.Methods.Select(m => m.ToUpper())),
+            StripPrefix = request.StripPrefix,
+            IsActive = true
+        };
+
+        var createdRoute = await _repository.AddRouteAsync(route);
+
+        await _cache.RemoveAsync($"{GatewayCachePrefix}{id}");
+        await _cache.RemoveAsync($"{UserGatewayListPrefix}{userId}");
+
+        return new RouteConfigResponseDTO
+        {
+            Id = createdRoute.Id,
+            Path = createdRoute.Path,
+            Methods = createdRoute.Methods.Split(',', StringSplitOptions.RemoveEmptyEntries).ToList(),
+            StripPrefix = createdRoute.StripPrefix,
+            IsActive = createdRoute.IsActive
+        };
+    }
+
+    public async Task DeleteRouteAsync(Guid id, Guid routeId, Guid userId)
+    {
+        var isOwner = await _repository.ExistsForUserAsync(id, userId);
+        if(!isOwner) throw new NotFoundException("Gateway not found.");
+
+        var route = await _repository.GetRoutesByIdAsync(routeId);
+        if(route == null || route.GatewayId != id)
+        {
+            throw new NotFoundException("Route not found on this gateway");
+        }
+
+        await _repository.DeleteRouteAsync(routeId);
+
+        await _cache.RemoveAsync($"{GatewayCachePrefix}{id}");
+        await _cache.RemoveAsync($"{UserGatewayListPrefix}{userId}");
+    }
+
+    public async Task<IEnumerable<RouteConfigResponseDTO>> GetGatewayRoutesAsync(Guid id, Guid userId)
+    {
+        var isOwner = await _repository.ExistsForUserAsync(id, userId);
+        if (!isOwner)
+        {
+            throw new NotFoundException("Gateway not Found");
+        }
+
+        var routes = await _repository.GetAllRoutesByGatewayIdAsync(id);
+        return routes.Select(r => new RouteConfigResponseDTO
+        {
+            Id = r.Id,
+            Path = r.Path,
+            Methods = r.Methods.Split(',', StringSplitOptions.RemoveEmptyEntries).ToList(),
+            StripPrefix = r.StripPrefix,
+            IsActive = r.IsActive
+        }).ToList();
+    }
+
+    public async Task<RouteConfigResponseDTO> UpdateRouteAsync(Guid id, Guid routeId, GatewayRequestDTO.UpdateRouteRequestDTO request, Guid userId)
+    {
+        var isOwner = await _repository.ExistsForUserAsync(id, userId);
+        if (!isOwner)
+        {
+            throw new NotFoundException("Gateway not found");
+        }
+
+        var route = await _repository.GetRoutesByIdAsync(routeId);
+        if(route == null || route.GatewayId != id)
+        {
+            throw new NotFoundException("Route not found on this gateway");
+        }
+
+        route.Path = request.Path;
+        route.Methods = string.Join(",", request.Methods.Select(m=>m.ToUpper()));
+        route.StripPrefix = request.StripPrefix;
+        route.IsActive = request.IsActive;
+
+        await _repository.UpdateRouteAsync(route);
+
+        await _cache.RemoveAsync($"{GatewayCachePrefix}{id}");
+        await _cache.RemoveAsync($"{UserGatewayListPrefix}{userId}");
+
+        return new RouteConfigResponseDTO
+        {
+            Id = route.Id,
+            Path = route.Path,
+            Methods = route.Methods.Split(',', StringSplitOptions.RemoveEmptyEntries).ToList(),
+            StripPrefix = route.StripPrefix,
+            IsActive = route.IsActive
+        };
+
+    }
+
 }

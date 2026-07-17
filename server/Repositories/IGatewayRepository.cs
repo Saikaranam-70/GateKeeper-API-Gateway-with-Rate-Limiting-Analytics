@@ -10,4 +10,9 @@ public interface IGatewayRepository
     Task UpdateAsync(Gateway gateway);
     Task DeleteAsync(Guid id);
     Task<bool> ExistsForUserAsync(Guid id, Guid userId);
-}
+    Task<RouteConfig?> AddRouteAsync(RouteConfig route);
+    Task<RouteConfig?> GetRoutesByIdAsync(Guid routeId);
+    Task DeleteRouteAsync(Guid routeId);
+    Task<IEnumerable<RouteConfig>> GetAllRoutesByGatewayIdAsync(Guid id);
+    Task UpdateRouteAsync(RouteConfig route);
+}
