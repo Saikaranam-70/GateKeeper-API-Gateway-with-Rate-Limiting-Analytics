@@ -1,7 +1,7 @@
-CREATE TABLE request_logs (
-  id              VARCHAR(50)  PRIMARY KEY,
-  gateway_id      BIGINT       NOT NULL,
-  api_key_id      BIGINT       NULL,
+CREATE TABLE IF NOT EXISTS request_logs (
+  id              UUID         PRIMARY KEY DEFAULT gen_random_uuid(),
+  gateway_id      UUID         NOT NULL,
+  api_key_id      UUID         NULL,
   method          VARCHAR(10)  NOT NULL,
   path            VARCHAR(500) NOT NULL,
   status_code     INT          NOT NULL,
@@ -14,5 +14,5 @@ CREATE TABLE request_logs (
   CONSTRAINT fk_request_logs_api_keys
     FOREIGN KEY (api_key_id) REFERENCES api_keys(id) ON DELETE SET NULL
 );
-CREATE INDEX ix_request_logs_gateway_timestamp
+CREATE INDEX IF NOT EXISTS ix_request_logs_gateway_timestamp
   ON request_logs(gateway_id, timestamp DESC);

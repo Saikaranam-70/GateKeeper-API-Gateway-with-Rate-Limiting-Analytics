@@ -1,8 +1,8 @@
-CREATE TABLE rate_limit_rules (
-  id                  BIGSERIAL    PRIMARY KEY,
-  gateway_id          BIGINT       NOT NULL,
+CREATE TABLE IF NOT EXISTS rate_limit_rules (
+  id                  UUID         PRIMARY KEY DEFAULT gen_random_uuid(),
+  gateway_id          UUID         NOT NULL,
   scope               VARCHAR(20)  NOT NULL,
-  api_key_id          BIGINT       NULL,
+  api_key_id          UUID         NULL,
   requests_per_window INT          NOT NULL,
   window_seconds      INT          NOT NULL,
   algorithm           VARCHAR(30)  NOT NULL DEFAULT 'sliding-window',
@@ -14,4 +14,4 @@ CREATE TABLE rate_limit_rules (
   CONSTRAINT fk_rate_limit_rules_api_keys
     FOREIGN KEY (api_key_id) REFERENCES api_keys(id) ON DELETE SET NULL
 );
-CREATE INDEX ix_rate_limit_rules_gateway_id ON rate_limit_rules(gateway_id);
+CREATE INDEX IF NOT EXISTS ix_rate_limit_rules_gateway_id ON rate_limit_rules(gateway_id);

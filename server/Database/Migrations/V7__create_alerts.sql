@@ -1,6 +1,6 @@
-CREATE TABLE alerts (
-  id                BIGSERIAL      PRIMARY KEY,
-  gateway_id        BIGINT         NOT NULL,
+CREATE TABLE IF NOT EXISTS alerts (
+  id                UUID           PRIMARY KEY DEFAULT gen_random_uuid(),
+  gateway_id        UUID           NOT NULL,
   name              VARCHAR(200)   NOT NULL,
   metric_type       VARCHAR(50)    NOT NULL,
   threshold_value   DECIMAL(10,2)  NOT NULL,
