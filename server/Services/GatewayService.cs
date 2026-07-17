@@ -182,7 +182,7 @@ public class GatewayService : IGatewayService
 
         return new RouteConfigResponseDTO
         {
-            Id = createdRoute.Id,
+            Id = createdRoute.Id ,
             Path = createdRoute.Path,
             Methods = createdRoute.Methods.Split(',', StringSplitOptions.RemoveEmptyEntries).ToList(),
             StripPrefix = createdRoute.StripPrefix,
