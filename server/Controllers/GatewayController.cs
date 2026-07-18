@@ -123,5 +123,25 @@ public class GatewayController: ControllerBase
         return NoContent();
     }
 
-    
+    [HttpPost("{id:guid}/simulate-traffic")]
+    public async Task<IActionResult> SimulateTraffic(Guid id)
+    {
+        var userId = GetUserId();
+        if (userId == Guid.Empty) return Unauthorized();
+
+        var result = await _service.SimulateTrafficAsync(id, userId);
+        return Ok(result);
+    }
+
+    [HttpPost("{id:guid}/status")]
+    public async Task<IActionResult> UpdateStatus(Guid id, [FromBody] GatewayRequestDTO.UpdateGatewayStatusRequestDTO request)
+    {
+        if (!ModelState.IsValid) return BadRequest(ModelState);
+
+        var userId = GetUserId();
+        if (userId == Guid.Empty) return Unauthorized();
+
+        var result = await _service.UpdateGatewayStatusAsync(id, request.Status, userId);
+        return Ok(result);
+    }
 }

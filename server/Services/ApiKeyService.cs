@@ -65,14 +65,14 @@ public class ApiKeyService : IApiKeyService
     }
 
     // ── LIST ─────────────────────────────────────────────────────────────────
-    public async Task<IEnumerable<ApiKeyResponseDTO>> ListApiKeysAsync(Guid userId)
+    public async Task<IEnumerable<ApiKeyResponseDTO>> ListApiKeysAsync(Guid userId, int page, int limit, Guid? gatewayId)
     {
-        var cacheKey = $"{UserApiKeyListPrefix}{userId}";
+        var cacheKey = $"{UserApiKeyListPrefix}{userId}:{gatewayId ?? Guid.Empty}:{page}:{limit}";
 
         var cached = await _cache.GetAsync<List<ApiKeyResponseDTO>>(cacheKey);
         if(cached != null) return cached;
 
-        var keys   = await _repository.GetByUserIdAsync(userId);
+        var keys   = await _repository.GetByUserIdAsync(userId, gatewayId, page, limit);
         var result = keys.Select(MapToDTO).ToList();
 
         await _cache.SetAsync(cacheKey, result, ListTtl);
@@ -104,4 +104,4 @@ public class ApiKeyService : IApiKeyService
             CreatedAt  = k.CreatedAt
         };
 
-}
+}

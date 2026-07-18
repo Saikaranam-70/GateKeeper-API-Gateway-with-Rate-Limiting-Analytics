@@ -226,6 +226,35 @@ public class GatewayService : IGatewayService
         }).ToList();
     }
 
+    public async Task<object> SimulateTrafficAsync(Guid id, Guid userId)
+    {
+        var isOwner = await _repository.ExistsForUserAsync(id, userId);
+        if (!isOwner)
+        {
+            throw new NotFoundException("Gateway not found.");
+        }
+
+        return new { gatewayId = id, simulated = true, message = "Traffic simulation request accepted." };
+    }
+
+    public async Task<GatewayResponseDTO> UpdateGatewayStatusAsync(Guid id, string? status, Guid userId)
+    {
+        var gateway = await _repository.GetByIdAsync(id);
+        if (gateway == null || gateway.UserId != userId)
+            throw new Exception("Gateway not found.");
+
+        if (!string.IsNullOrWhiteSpace(status))
+            gateway.Status = status;
+
+        await _repository.UpdateAsync(gateway);
+
+        await _cache.RemoveAsync($"{GatewayCachePrefix}{id}");
+        await _cache.RemoveAsync($"{UserGatewayListPrefix}{userId}");
+
+        var routes = await _repository.GetRoutesByGatewayIdAsync(id);
+        return MapToDTO(gateway, routes);
+    }
+
     public async Task<RouteConfigResponseDTO> UpdateRouteAsync(Guid id, Guid routeId, GatewayRequestDTO.UpdateRouteRequestDTO request, Guid userId)
     {
         var isOwner = await _repository.ExistsForUserAsync(id, userId);

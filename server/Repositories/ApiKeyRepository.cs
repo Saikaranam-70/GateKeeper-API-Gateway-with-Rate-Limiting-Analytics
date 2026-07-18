@@ -12,9 +12,10 @@ public class ApiKeyRepository : IApiKeyRepository
     }
 
 
-    public async Task<IEnumerable<ApiKey>> GetByUserIdAsync(Guid userId)
+    public async Task<IEnumerable<ApiKey>> GetByUserIdAsync(Guid userId, Guid? gatewayId, int page, int limit)
     {
         using var connection = _factory.CreateConnection();
+        var offset = (page - 1) * limit;
         var sql = @"
             SELECT ak.id, ak.gateway_id, ak.key_hash, ak.key_prefix, ak.label,
                    ak.is_active, ak.expires_at, ak.last_used_at, ak.created_at
@@ -22,8 +23,10 @@ public class ApiKeyRepository : IApiKeyRepository
             INNER JOIN gateways g ON g.id = ak.gateway_id
             WHERE g.user_id = @UserId
               AND ak.is_active = TRUE
-            ORDER BY ak.created_at DESC";
-        return await connection.QueryAsync<ApiKey>(sql, new { UserId = userId });
+              AND (@GatewayId IS NULL OR ak.gateway_id = @GatewayId)
+            ORDER BY ak.created_at DESC
+            LIMIT @Limit OFFSET @Offset";
+        return await connection.QueryAsync<ApiKey>(sql, new { UserId = userId, GatewayId = gatewayId, Limit = limit, Offset = offset });
     }
 
 

@@ -9,4 +9,6 @@ public interface IGatewayService
     Task<IEnumerable<GatewayResponseDTO>> GetUserGatewaysAsync(Guid userId);
     Task<GatewayResponseDTO> UpdateGatewayAsync(Guid id, GatewayRequestDTO.UpdateGatewayRequestDTO request, Guid userId);
     Task<RouteConfigResponseDTO> UpdateRouteAsync(Guid id, Guid routeId, GatewayRequestDTO.UpdateRouteRequestDTO request, Guid userId);
+    Task<object> SimulateTrafficAsync(Guid id, Guid userId);
+    Task<GatewayResponseDTO> UpdateGatewayStatusAsync(Guid id, string? status, Guid userId);
 }

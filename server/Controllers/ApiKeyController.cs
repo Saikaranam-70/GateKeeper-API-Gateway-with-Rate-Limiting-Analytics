@@ -20,12 +20,12 @@ public class ApiKeyController: ControllerBase
     }
 
     [HttpGet]
-    public async Task<IActionResult> List()
+    public async Task<IActionResult> List([FromQuery] int page = 1, [FromQuery] int limit = 50, [FromQuery] Guid? gatewayId = null)
     {
         var userId = GetUserId();
         if(userId == Guid.Empty) return Unauthorized();
 
-        var keys = await _service.ListApiKeysAsync(userId);
+        var keys = await _service.ListApiKeysAsync(userId, page, limit, gatewayId);
         return Ok(keys);
     }
 

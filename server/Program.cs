@@ -21,6 +21,12 @@ builder.Services.AddScoped<IGatewayService, GatewayService>();
 builder.Services.AddScoped<IGatewayRepository, GatewayRepository>();
 builder.Services.AddScoped<IApiKeyService, ApiKeyService>();
 builder.Services.AddScoped<IApiKeyRepository, ApiKeyRepository>();
+builder.Services.AddScoped<IAnalyticsService, AnalyticsService>();
+builder.Services.AddScoped<IAnalyticsRepository, AnalyticsRepository>();
+builder.Services.AddScoped<IAlertService, AlertService>();
+builder.Services.AddScoped<IAlertRepository, AlertRepository>();
+builder.Services.AddScoped<IRateLimitRuleService, RateLimitRuleService>();
+builder.Services.AddScoped<IRateLimitRuleRepository, RateLimitRuleRepository>();
 
 // Redis Setup
 var redisConnStr = builder.Configuration.GetConnectionString("Redis");
@@ -83,11 +89,25 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 builder.Services.AddAuthorization();
 
+// CORS Configuration
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowClient", policy =>
+    {
+        policy.WithOrigins("http://localhost:4200", "http://127.0.0.1:4200")
+              .AllowAnyMethod()
+              .AllowAnyHeader()
+              .AllowCredentials();
+    });
+});
+
 // Controllers & OpenAPI (Swagger)
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 
 var app = builder.Build();
+
+app.UseCors("AllowClient");
 
 // Global Exception Handler Middleware
 app.UseMiddleware<ExceptionHandlingMiddleware>();

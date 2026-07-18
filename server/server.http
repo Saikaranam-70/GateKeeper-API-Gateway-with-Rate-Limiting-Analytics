@@ -134,3 +134,120 @@ Authorization: Bearer {{token}}
 ### Set @apiKeyId at the top of this file before calling
 DELETE {{server_HostAddress}}/api/api-keys/{{apiKeyId}}
 Authorization: Bearer {{token}}
+
+### ── RATE LIMIT RULES ─────────────────────────────────────────────────────
+
+### 18. List Rate Limit Rules (JWT Protected)
+GET {{server_HostAddress}}/api/rate-limits?page=1&limit=20&gatewayId={{gatewayId}}
+Authorization: Bearer {{token}}
+
+### 19. Create Rate Limit Rule (JWT Protected)
+POST {{server_HostAddress}}/api/rate-limits
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "gatewayId": "{{gatewayId}}",
+  "scope": "global",
+  "requestsPerWindow": 100,
+  "windowSeconds": 60,
+  "algorithm": "sliding-window",
+  "burstAllowance": 20,
+  "isActive": true
+}
+
+### 20. Update Rate Limit Rule (JWT Protected)
+PUT {{server_HostAddress}}/api/rate-limits/{{rateLimitRuleId}}
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "requestsPerWindow": 200,
+  "windowSeconds": 30,
+  "isActive": true
+}
+
+### 21. Delete Rate Limit Rule (JWT Protected)
+DELETE {{server_HostAddress}}/api/rate-limits/{{rateLimitRuleId}}
+Authorization: Bearer {{token}}
+
+@rateLimitRuleId = YOUR_RATE_LIMIT_RULE_UUID_HERE
+
+### ── ALERTS ───────────────────────────────────────────────────────────────
+
+### 22. List Alerts (JWT Protected)
+GET {{server_HostAddress}}/api/alerts?page=1&limit=20&gatewayId={{gatewayId}}
+Authorization: Bearer {{token}}
+
+### 23. Create Alert Rule (JWT Protected)
+POST {{server_HostAddress}}/api/alerts
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "gatewayId": "{{gatewayId}}",
+  "name": "High error rate",
+  "metricType": "error-rate",
+  "thresholdValue": 10,
+  "thresholdUnit": "percent",
+  "isActive": true
+}
+
+### 24. Update Alert Rule (JWT Protected)
+PUT {{server_HostAddress}}/api/alerts/{{alertId}}
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "thresholdValue": 15,
+  "isActive": true
+}
+
+### 25. Delete Alert Rule (JWT Protected)
+DELETE {{server_HostAddress}}/api/alerts/{{alertId}}
+Authorization: Bearer {{token}}
+
+@alertId = YOUR_ALERT_UUID_HERE
+
+### ── GATEWAY ACTIONS ─────────────────────────────────────────────────────
+
+### 26. Simulate Traffic for Gateway (JWT Protected)
+POST {{server_HostAddress}}/api/gateways/{{gatewayId}}/simulate-traffic
+Authorization: Bearer {{token}}
+
+### 27. Update Gateway Status (JWT Protected)
+POST {{server_HostAddress}}/api/gateways/{{gatewayId}}/status
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "status": "active"
+}
+
+### ── ANALYTICS ───────────────────────────────────────────────────────────
+
+### 28. Traffic Summary
+GET {{server_HostAddress}}/api/analytics/{{gatewayId}}?from=2026-01-01T00:00:00Z&to=2026-12-31T23:59:59Z&windowHours=24
+Authorization: Bearer {{token}}
+
+### 29. Latency Analytics
+GET {{server_HostAddress}}/api/analytics/{{gatewayId}}/latency?from=2026-01-01T00:00:00Z&to=2026-12-31T23:59:59Z&windowHours=24
+Authorization: Bearer {{token}}
+
+### 30. Error Analytics
+GET {{server_HostAddress}}/api/analytics/{{gatewayId}}/errors?from=2026-01-01T00:00:00Z&to=2026-12-31T23:59:59Z&windowHours=24
+Authorization: Bearer {{token}}
+
+### 31. Request Logs
+GET {{server_HostAddress}}/api/analytics/{{gatewayId}}/requests?from=2026-01-01T00:00:00Z&to=2026-12-31T23:59:59Z&statusCode=500&page=1&limit=20
+Authorization: Bearer {{token}}
+
+### ── ADMIN / HEALTH ─────────────────────────────────────────────────────
+
+### 32. Admin Platform Stats (Admin only)
+GET {{server_HostAddress}}/api/admin/stats
+Authorization: Bearer {{token}}
+
+### 33. Health Check (Public)
+GET {{server_HostAddress}}/api/health
+Accept: application/json

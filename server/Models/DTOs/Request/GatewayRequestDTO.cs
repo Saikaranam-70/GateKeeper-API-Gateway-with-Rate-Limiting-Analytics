@@ -57,5 +57,12 @@ public class GatewayRequestDTO
 
         public bool IsActive {get; set;} = true;
     }
+
+    public class UpdateGatewayStatusRequestDTO
+    {
+        [Required]
+        [MaxLength(50)]
+        public string? Status { get; set; }
+    }
     
 }
