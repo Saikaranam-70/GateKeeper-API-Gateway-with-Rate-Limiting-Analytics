@@ -19,6 +19,8 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddScoped<IGatewayService, GatewayService>();
 builder.Services.AddScoped<IGatewayRepository, GatewayRepository>();
+builder.Services.AddScoped<IApiKeyService, ApiKeyService>();
+builder.Services.AddScoped<IApiKeyRepository, ApiKeyRepository>();
 
 // Redis Setup
 var redisConnStr = builder.Configuration.GetConnectionString("Redis");
