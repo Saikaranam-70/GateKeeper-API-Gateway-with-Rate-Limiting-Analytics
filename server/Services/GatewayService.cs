@@ -35,7 +35,7 @@ public class GatewayService : IGatewayService
 
         var id = await _repository.CreateAsync(gateway);
 
-        if (request.Routes.Any())
+        if (request.Routes != null && request.Routes.Any())
         {
             var routes = request.Routes.Select(r => new RouteConfig
             {
@@ -152,7 +152,7 @@ public class GatewayService : IGatewayService
             {
                 Id          = r.Id,
                 Path        = r.Path,
-                Methods     = r.Methods.Split(',', StringSplitOptions.RemoveEmptyEntries).ToList(),
+                Methods     = (r.Methods ?? string.Empty).Split(',', StringSplitOptions.RemoveEmptyEntries).ToList(),
                 StripPrefix = r.StripPrefix,
                 IsActive    = r.IsActive
             }).ToList()
@@ -184,7 +184,7 @@ public class GatewayService : IGatewayService
         {
             Id = createdRoute.Id ,
             Path = createdRoute.Path,
-            Methods = createdRoute.Methods.Split(',', StringSplitOptions.RemoveEmptyEntries).ToList(),
+            Methods = (createdRoute.Methods ?? string.Empty).Split(',', StringSplitOptions.RemoveEmptyEntries).ToList(),
             StripPrefix = createdRoute.StripPrefix,
             IsActive = createdRoute.IsActive
         };
@@ -220,7 +220,7 @@ public class GatewayService : IGatewayService
         {
             Id = r.Id,
             Path = r.Path,
-            Methods = r.Methods.Split(',', StringSplitOptions.RemoveEmptyEntries).ToList(),
+            Methods = (r.Methods ?? string.Empty).Split(',', StringSplitOptions.RemoveEmptyEntries).ToList(),
             StripPrefix = r.StripPrefix,
             IsActive = r.IsActive
         }).ToList();
@@ -254,7 +254,7 @@ public class GatewayService : IGatewayService
         {
             Id = route.Id,
             Path = route.Path,
-            Methods = route.Methods.Split(',', StringSplitOptions.RemoveEmptyEntries).ToList(),
+            Methods = (route.Methods ?? string.Empty).Split(',', StringSplitOptions.RemoveEmptyEntries).ToList(),
             StripPrefix = route.StripPrefix,
             IsActive = route.IsActive
         };
