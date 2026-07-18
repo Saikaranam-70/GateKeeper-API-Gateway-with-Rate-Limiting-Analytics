@@ -1,0 +1,179 @@
+<div style="padding: 1.5rem 0;">
+  
+  <!-- Header -->
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+    <div>
+      <h1 style="font-size: 2rem; font-weight: 800; letter-spacing: -0.02em; background: var(--title-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 0.25rem;">Console Dashboard</h1>
+      <p style="color: var(--text-secondary); font-size: 0.95rem;">Monitor and manage your active gateway tunnels</p>
+    </div>
+    <div>
+      <a routerLink="/gateways/new" class="btn btn-primary">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M5 12h14M12 5v14"/>
+        </svg>
+        Create Gateway
+      </a>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading" style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 250px; gap: 1rem;">
+    <div style="width: 40px; height: 40px; border: 3px solid rgba(255,255,255,0.05); border-top-color: var(--accent-violet); border-radius: 50%; animation: spin 1s linear infinite;"></div>
+    <span style="color: var(--text-secondary); font-size: 0.9rem;">Fetching control plane metrics...</span>
+  </div>
+
+  <!-- Loaded Content -->
+  <div *ngIf="!loading">
+    
+    <!-- Stats Overview Cards Grid -->
+    <div class="stats-grid">
+      
+      <!-- Total Gateways -->
+      <div class="glass-card stat-card">
+        <div class="stat-label">
+          <span>Total Gateways</span>
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent-violet)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/>
+          </svg>
+        </div>
+        <div class="stat-value">
+          {{ totalGatewaysCount }}
+          <span class="stat-value-sub">configured</span>
+        </div>
+      </div>
+
+      <!-- Active Gateways -->
+      <div class="glass-card stat-card" style="border-color: rgba(16, 185, 129, 0.15);">
+        <div class="stat-label">
+          <span>Active Nodes</span>
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--status-active)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="m5 12 5 5L20 7"/>
+          </svg>
+        </div>
+        <div class="stat-value" style="color: #34d399;">
+          {{ activeGatewaysCount }}
+          <span class="stat-value-sub" style="color: rgba(52, 211, 153, 0.65);">routing live traffic</span>
+        </div>
+      </div>
+
+      <!-- Inactive Gateways -->
+      <div class="glass-card stat-card" style="border-color: rgba(245, 158, 11, 0.15);">
+        <div class="stat-label">
+          <span>Inactive Nodes</span>
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--status-inactive)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 6 6 18M6 6l12 12"/>
+          </svg>
+        </div>
+        <div class="stat-value" style="color: #fbbf24;">
+          {{ inactiveGatewaysCount }}
+          <span class="stat-value-sub" style="color: rgba(251, 191, 36, 0.65);">disabled</span>
+        </div>
+      </div>
+
+      <!-- Admin Platform Stats (Dynamic) -->
+      <div *ngIf="isAdmin && adminStats" class="glass-card stat-card" style="border-color: rgba(217, 70, 239, 0.15);">
+        <div class="stat-label">
+          <span>Platform Users</span>
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent-pink)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+            <circle cx="9" cy="7" r="4"/>
+            <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
+            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+          </svg>
+        </div>
+        <div class="stat-value" style="color: #f472b6;">
+          {{ adminStats.totalUsers }}
+          <span class="stat-value-sub" style="color: rgba(244, 114, 182, 0.65);">global developers</span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Gateway Nodes Cards Section -->
+    <div style="margin-top: 2.5rem;">
+      <h2 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 1.25rem; display: flex; align-items: center; gap: 0.5rem;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-violet)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="2" y="2" width="20" height="8" rx="2" ry="2"/>
+          <rect x="2" y="14" width="20" height="8" rx="2" ry="2"/>
+          <line x1="6" y1="6" x2="6.01" y2="6"/>
+          <line x1="6" y1="18" x2="6.01" y2="18"/>
+        </svg>
+        Gateway Proxies
+      </h2>
+
+      <!-- Empty State -->
+      <div *ngIf="gateways.length === 0" class="glass-panel" style="padding: 3rem; text-align: center; border-radius: var(--border-radius-md);">
+        <div style="display: inline-flex; align-items: center; justify-content: center; width: 64px; height: 64px; border-radius: 50%; background: rgba(99, 102, 241, 0.05); margin-bottom: 1.5rem; border: 1px solid rgba(99, 102, 241, 0.15);">
+          <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--accent-violet)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect width="20" height="8" x="2" y="2" rx="2"/>
+            <rect width="20" height="8" x="2" y="14" rx="2"/>
+            <line x1="6" x2="6.01" y1="6" y2="6"/>
+            <line x1="6" x2="6.01" y1="18" y2="18"/>
+          </svg>
+        </div>
+        <h3 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 0.5rem;">No gateways found</h3>
+        <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1.5rem; max-width: 380px; margin-left: auto; margin-right: auto;">Create your first API Gateway connection to start routing endpoint calls, limiting rates, and viewing live analytics.</p>
+        <a routerLink="/gateways/new" class="btn btn-primary">Create Gateway</a>
+      </div>
+
+      <!-- Gateway Cards List -->
+      <div *ngIf="gateways.length > 0" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); gap: 1.5rem;">
+        <div *ngFor="let gw of gateways" class="glass-card glass-panel" [class.glass-card-cyan]="gw.status === 'active'" style="display: flex; flex-direction: column; justify-content: space-between; min-height: 220px; transition: var(--transition-smooth);">
+          
+          <div>
+            <!-- Top details -->
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem;">
+              <h3 style="font-size: 1.15rem; font-weight: 700; color: var(--text-primary); letter-spacing: -0.01em;">{{ gw.name }}</h3>
+              <span class="badge" [class.badge-active]="gw.status === 'active'" [class.badge-inactive]="gw.status === 'inactive'" (click)="toggleStatus(gw); $event.stopPropagation()" style="cursor: pointer;" title="Click to toggle status">
+                <span style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: currentColor;"></span>
+                {{ gw.status | uppercase }}
+              </span>
+            </div>
+
+            <!-- Description -->
+            <p style="color: var(--text-secondary); font-size: 0.875rem; margin-bottom: 1.25rem; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; min-height: 2.5rem;">
+              {{ gw.description || 'No description provided.' }}
+            </p>
+
+            <!-- Metadata Info -->
+            <div style="display: flex; flex-direction: column; gap: 0.5rem; background: rgba(255,255,255,0.02); padding: 0.75rem 1rem; border-radius: var(--border-radius-sm); border: 1px solid rgba(255,255,255,0.04); margin-bottom: 1.25rem; font-family: monospace; font-size: 0.75rem;">
+              <div style="display: flex; justify-content: space-between;">
+                <span style="color: var(--text-muted);">TARGET:</span>
+                <span style="color: var(--text-secondary); text-overflow: ellipsis; overflow: hidden; white-space: nowrap; max-width: 220px;">{{ gw.targetBaseUrl }}</span>
+              </div>
+              <div style="display: flex; justify-content: space-between;">
+                <span style="color: var(--text-muted);">RATE LIMIT:</span>
+                <span style="color: var(--text-secondary);">{{ gw.defaultRateLimitPerMin }} req/min</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card footer actions -->
+          <div style="display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; margin-top: auto; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 1rem;">
+            <button class="btn btn-glass" (click)="simulateTraffic(gw)" style="padding: 0.5rem 0.75rem; font-size: 0.8rem; flex-grow: 1; border-color: rgba(6, 182, 212, 0.2); color: var(--accent-cyan);">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+              </svg>
+              Simulate Traffic
+            </button>
+            <a [routerLink]="['/gateways', gw.id]" class="btn btn-primary" style="padding: 0.5rem 1rem; font-size: 0.8rem; background: linear-gradient(135deg, var(--accent-violet) 0%, #4338ca 100%);">
+              Configure
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
+            </a>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Loader Keyframes Spin Definition -->
+<style>
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+</style>

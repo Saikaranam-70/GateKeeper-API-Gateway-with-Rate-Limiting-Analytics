@@ -1,0 +1,659 @@
+<div *ngIf="loading" style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 400px; gap: 1rem;">
+  <div style="width: 40px; height: 40px; border: 3px solid rgba(255,255,255,0.05); border-top-color: var(--accent-violet); border-radius: 50%; animation: spin 1s linear infinite;"></div>
+  <span style="color: var(--text-secondary); font-size: 0.9rem;">Loading gateway workspace...</span>
+</div>
+
+<div *ngIf="!loading && gateway" style="padding: 1.5rem 0;">
+  
+  <!-- Back navigation & Main Gateway Header -->
+  <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+    <div>
+      <a routerLink="/dashboard" style="display: inline-flex; align-items: center; gap: 0.5rem; color: var(--text-secondary); text-decoration: none; font-size: 0.9rem; font-weight: 500; transition: var(--transition-smooth); margin-bottom: 0.75rem;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="m15 18-6-6 6-6"/>
+        </svg>
+        Back to Dashboard
+      </a>
+      <div style="display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;">
+        <h1 style="font-size: 2rem; font-weight: 800; letter-spacing: -0.02em; background: var(--title-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+          {{ gateway.name }}
+        </h1>
+        <span class="badge" [class.badge-active]="gateway.status === 'active'" [class.badge-inactive]="gateway.status === 'inactive'">
+          <span style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: currentColor;"></span>
+          {{ gateway.status | uppercase }}
+        </span>
+      </div>
+    </div>
+    
+    <!-- Header Quick Actions -->
+    <div style="display: flex; gap: 0.75rem;">
+      <button (click)="simulateTraffic()" class="btn btn-cyan" style="box-shadow: var(--glow-shadow-cyan);">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+        </svg>
+        Simulate Traffic
+      </button>
+    </div>
+  </div>
+
+  <!-- Workspace Sub-tabs Navigation -->
+  <div class="tab-container">
+    <button class="tab-btn" [class.active]="activeTab === 'overview'" (click)="onTabChange('overview')">Overview</button>
+    <button class="tab-btn" [class.active]="activeTab === 'routes'" (click)="onTabChange('routes')">Routes Matching</button>
+    <button class="tab-btn" [class.active]="activeTab === 'rate-limiting'" (click)="onTabChange('rate-limiting')">Rate Limiting</button>
+    <button class="tab-btn" [class.active]="activeTab === 'alerts'" (click)="onTabChange('alerts')">Alert Monitors</button>
+    <button class="tab-btn" [class.active]="activeTab === 'analytics'" (click)="onTabChange('analytics')">Live Analytics</button>
+  </div>
+
+  <!-- --- TAB CONTENT 1: OVERVIEW METADATA --- -->
+  <div *ngIf="activeTab === 'overview'" class="glass-panel" style="padding: 2.5rem; border-radius: var(--border-radius-lg);">
+    
+    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 1.25rem; margin-bottom: 2rem;">
+      <h2 style="font-size: 1.25rem; font-weight: 700;">Gateway Configurations</h2>
+      
+      <!-- Edit trigger buttons -->
+      <button *ngIf="!isEditingGateway" (click)="enableGatewayEdit()" class="btn btn-glass" style="padding: 0.5rem 1rem; font-size: 0.85rem;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/>
+        </svg>
+        Edit Config
+      </button>
+    </div>
+
+    <!-- Read-only view -->
+    <div *ngIf="!isEditingGateway" style="display: flex; flex-direction: column; gap: 1.75rem;">
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 2rem;">
+        <div>
+          <span style="display: block; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-bottom: 0.35rem;">Gateway Node ID</span>
+          <span style="font-family: monospace; font-size: 0.9rem; color: var(--text-secondary);">{{ gateway.id }}</span>
+        </div>
+        <div>
+          <span style="display: block; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-bottom: 0.35rem;">Target Upstream Base URL</span>
+          <span style="font-size: 0.95rem; font-weight: 500;">{{ gateway.targetBaseUrl }}</span>
+        </div>
+        <div>
+          <span style="display: block; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-bottom: 0.35rem;">Default Rate Limit</span>
+          <span style="font-size: 0.95rem; font-weight: 500;">{{ gateway.defaultRateLimitPerMin }} requests / min</span>
+        </div>
+      </div>
+
+      <div style="border-top: 1px solid rgba(255,255,255,0.03); padding-top: 1.5rem;">
+        <span style="display: block; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-bottom: 0.5rem;">Description</span>
+        <p style="color: var(--text-secondary); line-height: 1.6; font-size: 0.95rem;">
+          {{ gateway.description || 'No description provided for this gateway tunnel.' }}
+        </p>
+      </div>
+
+      <!-- Toggle Status and Dangerous actions -->
+      <div style="border-top: 1px solid rgba(255,255,255,0.05); padding-top: 2rem; margin-top: 1rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1.5rem;">
+        <div class="switch-container" (click)="toggleGatewayStatus()">
+          <label class="switch">
+            <input type="checkbox" [checked]="gateway.status === 'active'" disabled>
+            <span class="slider"></span>
+          </label>
+          <div>
+            <span style="display: block; font-size: 0.9rem; font-weight: 600;">Tunnel Status</span>
+            <span style="display: block; font-size: 0.75rem; color: var(--text-muted);">Enable or disable proxy routing instantly</span>
+          </div>
+        </div>
+
+        <button (click)="deleteGateway()" class="btn btn-danger">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 6h18M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2M10 11v6M14 11v6"/>
+          </svg>
+          Delete Gateway
+        </button>
+      </div>
+    </div>
+
+    <!-- Edit mode view -->
+    <div *ngIf="isEditingGateway">
+      <div class="form-group">
+        <label class="form-label" for="edit-name">Gateway Name</label>
+        <input class="form-input" type="text" id="edit-name" [(ngModel)]="editGwName" required>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="edit-desc">Description</label>
+        <textarea class="form-textarea" id="edit-desc" [(ngModel)]="editGwDescription"></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="edit-target">Target Base URL</label>
+        <input class="form-input" type="url" id="edit-target" [(ngModel)]="editGwTargetUrl" required>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="edit-limit">Default Rate Limit (Requests/Min)</label>
+        <input class="form-input" type="number" id="edit-limit" [(ngModel)]="editGwRateLimit" min="1" required>
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 1rem; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 1.5rem; margin-top: 2rem;">
+        <button (click)="cancelGatewayEdit()" class="btn btn-glass">Cancel</button>
+        <button (click)="saveGatewayDetails()" class="btn btn-primary">Save Changes</button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- --- TAB CONTENT 2: ROUTES MATCHING --- -->
+  <div *ngIf="activeTab === 'routes'">
+    <div class="glass-panel" style="padding: 2rem; border-radius: var(--border-radius-lg);">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+        <div>
+          <h2 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 0.25rem;">Route Definitions</h2>
+          <p style="color: var(--text-secondary); font-size: 0.85rem;">Define path matching patterns YARP proxies to the upstream URL</p>
+        </div>
+        <button (click)="openAddRouteModal()" class="btn btn-primary" style="padding: 0.6rem 1.2rem; font-size: 0.85rem;">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M5 12h14M12 5v14"/>
+          </svg>
+          Add Route Rule
+        </button>
+      </div>
+
+      <div *ngIf="routes.length === 0" style="padding: 3rem; text-align: center; color: var(--text-secondary);">
+        <p style="margin-bottom: 1rem; font-size: 0.95rem;">No route mappings configured. Gateway will not forward incoming requests.</p>
+        <button (click)="openAddRouteModal()" class="btn btn-glass" style="font-size: 0.85rem;">Create a Route Mapping</button>
+      </div>
+
+      <div *ngIf="routes.length > 0" class="table-container">
+        <table class="glass-table">
+          <thead>
+            <tr>
+              <th>Path Template</th>
+              <th>HTTP Methods</th>
+              <th>Strip Prefix</th>
+              <th>Status</th>
+              <th style="text-align: right;">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let rt of routes">
+              <td style="font-family: monospace; font-size: 0.9rem; color: #a5b4fc; font-weight: 600;">{{ rt.path }}</td>
+              <td>
+                <div style="display: flex; gap: 0.35rem; flex-wrap: wrap;">
+                  <span *ngFor="let m of rt.methods" class="badge badge-method" [class.badge-method-get]="m === 'GET'" [class.badge-method-post]="m === 'POST'" [class.badge-method-put]="m === 'PUT'" [class.badge-method-delete]="m === 'DELETE'">
+                    {{ m }}
+                  </span>
+                </div>
+              </td>
+              <td>
+                <span class="badge" [class.badge-active]="rt.stripPrefix" [class.badge-inactive]="!rt.stripPrefix">
+                  {{ rt.stripPrefix ? 'YES' : 'NO' }}
+                </span>
+              </td>
+              <td>
+                <span class="badge" [class.badge-active]="rt.isActive" [class.badge-inactive]="!rt.isActive">
+                  {{ rt.isActive ? 'ACTIVE' : 'INACTIVE' }}
+                </span>
+              </td>
+              <td style="text-align: right;">
+                <div style="display: inline-flex; gap: 0.5rem;">
+                  <button (click)="openEditRouteModal(rt)" class="btn btn-glass" style="padding: 0.4rem 0.65rem; font-size: 0.8rem;" title="Edit route">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/>
+                    </svg>
+                  </button>
+                  <button (click)="deleteRoute(rt.id)" class="btn btn-danger" style="padding: 0.4rem 0.65rem; font-size: 0.8rem;" title="Delete route">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M3 6h18M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
+                    </svg>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- --- TAB CONTENT 3: RATE LIMITING --- -->
+  <div *ngIf="activeTab === 'rate-limiting'">
+    <div class="glass-panel" style="padding: 2rem; border-radius: var(--border-radius-lg);">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+        <div>
+          <h2 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 0.25rem;">Rate Limiting Rules</h2>
+          <p style="color: var(--text-secondary); font-size: 0.85rem;">Limit client requests over set time windows using sliding/fixed algorithms</p>
+        </div>
+        <button (click)="openAddRateLimitModal()" class="btn btn-primary" style="padding: 0.6rem 1.2rem; font-size: 0.85rem;">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M5 12h14M12 5v14"/>
+          </svg>
+          Configure Rule
+        </button>
+      </div>
+
+      <div *ngIf="rateLimits.length === 0" style="padding: 3rem; text-align: center; color: var(--text-secondary);">
+        <p style="margin-bottom: 1rem; font-size: 0.95rem;">No custom rate limiting rule overrides found. Gateway utilizes default values.</p>
+        <button (click)="openAddRateLimitModal()" class="btn btn-glass" style="font-size: 0.85rem;">Add Custom Rate Limit</button>
+      </div>
+
+      <div *ngIf="rateLimits.length > 0" class="table-container">
+        <table class="glass-table">
+          <thead>
+            <tr>
+              <th>Scope</th>
+              <th>Requests Allowed</th>
+              <th>Time Window</th>
+              <th>Algorithm</th>
+              <th>Burst Allowance</th>
+              <th>Status</th>
+              <th style="text-align: right;">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let rl of rateLimits">
+              <td style="font-family: monospace; font-size: 0.9rem; text-transform: uppercase;">
+                <span class="badge" [class.badge-active]="rl.scope === 'global'" [class.badge-inactive]="rl.scope === 'ip'" style="background: rgba(255,255,255,0.05); color: var(--text-primary); border-color: rgba(255,255,255,0.1);">
+                  {{ rl.scope }}
+                </span>
+              </td>
+              <td style="font-size: 1rem; font-weight: 700;">{{ rl.requestsPerWindow }}</td>
+              <td>{{ rl.windowSeconds }} seconds</td>
+              <td style="font-family: monospace; font-size: 0.85rem;">{{ rl.algorithm }}</td>
+              <td>{{ rl.burstAllowance || 'None' }}</td>
+              <td>
+                <span class="badge" [class.badge-active]="rl.isActive" [class.badge-inactive]="!rl.isActive">
+                  {{ rl.isActive ? 'ACTIVE' : 'INACTIVE' }}
+                </span>
+              </td>
+              <td style="text-align: right;">
+                <div style="display: inline-flex; gap: 0.5rem;">
+                  <button (click)="openEditRateLimitModal(rl)" class="btn btn-glass" style="padding: 0.4rem 0.65rem; font-size: 0.8rem;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/>
+                    </svg>
+                  </button>
+                  <button (click)="deleteRateLimit(rl.id)" class="btn btn-danger" style="padding: 0.4rem 0.65rem; font-size: 0.8rem;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M3 6h18M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
+                    </svg>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- --- TAB CONTENT 4: ALERTS --- -->
+  <div *ngIf="activeTab === 'alerts'">
+    <div class="glass-panel" style="padding: 2rem; border-radius: var(--border-radius-lg);">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+        <div>
+          <h2 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 0.25rem;">Alert Rules & Thresholds</h2>
+          <p style="color: var(--text-secondary); font-size: 0.85rem;">Triggers notification flags when error rates or latencies exceed criteria</p>
+        </div>
+        <button (click)="openAddAlertModal()" class="btn btn-primary" style="padding: 0.6rem 1.2rem; font-size: 0.85rem;">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M5 12h14M12 5v14"/>
+          </svg>
+          Configure Monitor
+        </button>
+      </div>
+
+      <div *ngIf="alerts.length === 0" style="padding: 3rem; text-align: center; color: var(--text-secondary);">
+        <p style="margin-bottom: 1rem; font-size: 0.95rem;">No monitoring alerts configured. Gateway logs will not trigger flags.</p>
+        <button (click)="openAddAlertModal()" class="btn btn-glass" style="font-size: 0.85rem;">Add Monitoring Alert</button>
+      </div>
+
+      <div *ngIf="alerts.length > 0" class="table-container">
+        <table class="glass-table">
+          <thead>
+            <tr>
+              <th>Alert Label</th>
+              <th>Metric Evaluated</th>
+              <th>Trigger Threshold</th>
+              <th>Last Triggered</th>
+              <th>Status</th>
+              <th style="text-align: right;">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let al of alerts">
+              <td style="font-weight: 600; color: var(--text-primary);">{{ al.name }}</td>
+              <td style="font-family: monospace; font-size: 0.85rem; text-transform: uppercase;">{{ al.metricType }}</td>
+              <td style="font-size: 0.95rem; font-weight: 700; color: var(--accent-cyan);">
+                &gt; {{ al.thresholdValue }} {{ al.thresholdUnit }}
+              </td>
+              <td>
+                <span *ngIf="al.lastTriggeredAt" class="badge badge-error">
+                  {{ al.lastTriggeredAt | date:'short' }}
+                </span>
+                <span *ngIf="!al.lastTriggeredAt" style="color: var(--text-muted);">Never triggered</span>
+              </td>
+              <td>
+                <span class="badge" [class.badge-active]="al.isActive" [class.badge-inactive]="!al.isActive">
+                  {{ al.isActive ? 'ACTIVE' : 'INACTIVE' }}
+                </span>
+              </td>
+              <td style="text-align: right;">
+                <div style="display: inline-flex; gap: 0.5rem;">
+                  <button (click)="openEditAlertModal(al)" class="btn btn-glass" style="padding: 0.4rem 0.65rem; font-size: 0.8rem;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/>
+                    </svg>
+                  </button>
+                  <button (click)="deleteAlert(al.id)" class="btn btn-danger" style="padding: 0.4rem 0.65rem; font-size: 0.8rem;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M3 6h18M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
+                    </svg>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- --- TAB CONTENT 5: LIVE ANALYTICS --- -->
+  <div *ngIf="activeTab === 'analytics'">
+    
+    <!-- Controls Toolbar -->
+    <div class="glass-panel" style="padding: 1.25rem 2rem; border-radius: var(--border-radius-md); margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+      <div style="display: flex; align-items: center; gap: 1rem;">
+        <label class="form-label" style="margin: 0;" for="time-win">Analysis Window:</label>
+        <select class="form-select" id="time-win" [(ngModel)]="timeWindowHours" (change)="loadAnalytics(); loadRequestLogs();" style="width: auto; padding: 0.4rem 2rem 0.4rem 1rem;">
+          <option [ngValue]="1">Past 1 Hour</option>
+          <option [ngValue]="24">Past 24 Hours</option>
+          <option [ngValue]="168">Past 7 Days</option>
+        </select>
+      </div>
+
+      <div style="display: flex; gap: 0.5rem;">
+        <button (click)="loadAnalytics(); loadRequestLogs();" class="btn btn-glass" style="padding: 0.5rem 1rem; font-size: 0.85rem;" [disabled]="loadingAnalytics || loadingLogs">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
+          </svg>
+          Refresh Analytics
+        </button>
+      </div>
+    </div>
+
+    <!-- Live Charts Container Grid -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); gap: 2rem; margin-bottom: 2.5rem;">
+      
+      <!-- Traffic Summary Chart -->
+      <div class="glass-panel" style="padding: 1.5rem; border-radius: var(--border-radius-md); min-height: 320px; display: flex; flex-direction: column;">
+        <h3 style="font-size: 1.05rem; font-weight: 700; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+          <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--accent-violet);"></span>
+          HTTP Request Volume
+        </h3>
+        <div style="flex-grow: 1; position: relative; height: 220px;">
+          <canvas #trafficCanvas></canvas>
+        </div>
+      </div>
+
+      <!-- Latency Average & P95 Chart -->
+      <div class="glass-panel" style="padding: 1.5rem; border-radius: var(--border-radius-md); min-height: 320px; display: flex; flex-direction: column;">
+        <h3 style="font-size: 1.05rem; font-weight: 700; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+          <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--accent-cyan);"></span>
+          Response Latency (ms)
+        </h3>
+        <div style="flex-grow: 1; position: relative; height: 220px;">
+          <canvas #latencyCanvas></canvas>
+        </div>
+      </div>
+
+      <!-- Errors Status Distribution Chart -->
+      <div class="glass-panel" style="padding: 1.5rem; border-radius: var(--border-radius-md); min-height: 320px; display: flex; flex-direction: column; grid-column: span 1;">
+        <h3 style="font-size: 1.05rem; font-weight: 700; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+          <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--status-error);"></span>
+          HTTP Status Distribution
+        </h3>
+        <div style="flex-grow: 1; position: relative; height: 220px;">
+          <canvas #errorCanvas></canvas>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Request Logs Table -->
+    <div class="glass-panel" style="padding: 2rem; border-radius: var(--border-radius-lg);">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+        <div>
+          <h3 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 0.25rem;">Gateway Live Request Stream</h3>
+          <p style="color: var(--text-secondary); font-size: 0.85rem;">Trace incoming request logs forwarding through this node</p>
+        </div>
+
+        <!-- Filter status badges -->
+        <div style="display: flex; gap: 0.35rem; flex-wrap: wrap;">
+          <button (click)="filterLogsByStatus(null)" class="btn btn-glass" style="padding: 0.35rem 0.75rem; font-size: 0.75rem; border-radius: 50px;" [class.btn-primary]="logsStatusFilter === null">All</button>
+          <button (click)="filterLogsByStatus(200)" class="btn btn-glass" style="padding: 0.35rem 0.75rem; font-size: 0.75rem; border-radius: 50px;" [class.btn-primary]="logsStatusFilter === 200">2xx Success</button>
+          <button (click)="filterLogsByStatus(429)" class="btn btn-glass" style="padding: 0.35rem 0.75rem; font-size: 0.75rem; border-radius: 50px;" [class.btn-primary]="logsStatusFilter === 429">429 Rate Limited</button>
+          <button (click)="filterLogsByStatus(500)" class="btn btn-glass" style="padding: 0.35rem 0.75rem; font-size: 0.75rem; border-radius: 50px;" [class.btn-primary]="logsStatusFilter === 500">5xx Server Errors</button>
+        </div>
+      </div>
+
+      <!-- Loading logs state -->
+      <div *ngIf="loadingLogs" style="display: flex; justify-content: center; align-items: center; min-height: 150px;">
+        <div style="width: 28px; height: 28px; border: 2.5px solid rgba(255,255,255,0.05); border-top-color: var(--accent-cyan); border-radius: 50%; animation: spin 1s linear infinite;"></div>
+      </div>
+
+      <!-- Loaded request logs -->
+      <div *ngIf="!loadingLogs">
+        <div *ngIf="requestLogs.length === 0" style="padding: 2.5rem; text-align: center; color: var(--text-secondary);">
+          No request logs found for the filtered criteria.
+        </div>
+
+        <div *ngIf="requestLogs.length > 0">
+          <div class="table-container">
+            <table class="glass-table" style="font-size: 0.85rem;">
+              <thead>
+                <tr>
+                  <th>Timestamp</th>
+                  <th>IP Address</th>
+                  <th>Method</th>
+                  <th>Request Path</th>
+                  <th>Status</th>
+                  <th>Latency</th>
+                  <th>API Key Auth</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let log of requestLogs">
+                  <td style="color: var(--text-secondary); white-space: nowrap;">{{ log.createdAt | date:'HH:mm:ss.S MMM d' }}</td>
+                  <td style="font-family: monospace;">{{ log.clientIp }}</td>
+                  <td>
+                    <span class="badge badge-method" [class.badge-method-get]="log.httpMethod === 'GET'" [class.badge-method-post]="log.httpMethod === 'POST'" [class.badge-method-put]="log.httpMethod === 'PUT'" [class.badge-method-delete]="log.httpMethod === 'DELETE'">
+                      {{ log.httpMethod }}
+                    </span>
+                  </td>
+                  <td style="font-family: monospace; font-weight: 500; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; max-width: 250px;" [title]="log.requestPath">
+                    {{ log.requestPath }}
+                  </td>
+                  <td>
+                    <span class="badge" [class.badge-active]="log.statusCode < 400" [class.badge-inactive]="log.statusCode === 429" [class.badge-error]="log.statusCode >= 500">
+                      {{ log.statusCode }}
+                    </span>
+                  </td>
+                  <td style="font-weight: 600;">{{ log.latencyMs }} ms</td>
+                  <td>
+                    <span *ngIf="log.apiKeyLabel" class="badge" style="background: rgba(99,102,241,0.08); color: #c7d2fe; border-color: rgba(99,102,241,0.2);" [title]="'Key ID: ' + log.apiKeyId">
+                      {{ log.apiKeyLabel }}
+                    </span>
+                    <span *ngIf="!log.apiKeyLabel" style="color: var(--text-muted);">Anonymous</span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Pagination Bar -->
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1.5rem; flex-wrap: wrap; gap: 1rem; border-top: 1px solid rgba(255,255,255,0.04); padding-top: 1rem;">
+            <span style="font-size: 0.8rem; color: var(--text-secondary);">
+              Showing Page <strong>{{ logsPage }}</strong> of {{ logsTotalPages }} (Total Logs: {{ logsTotal }})
+            </span>
+            <div style="display: flex; gap: 0.35rem;">
+              <button (click)="changeLogsPage(logsPage - 1)" class="btn btn-glass" style="padding: 0.35rem 0.75rem; font-size: 0.75rem;" [disabled]="logsPage <= 1">Prev</button>
+              <button (click)="changeLogsPage(logsPage + 1)" class="btn btn-glass" style="padding: 0.35rem 0.75rem; font-size: 0.75rem;" [disabled]="logsPage >= logsTotalPages">Next</button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- --- MODAL 1: ADD / EDIT ROUTE MATCHING --- -->
+  <div *ngIf="routeModalOpen" class="modal-overlay">
+    <div class="modal-content glass-panel">
+      <h3 style="font-size: 1.25rem; font-weight: 800; margin-bottom: 1.5rem; background: var(--title-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+        {{ editingRoute ? 'Modify Route Config' : 'Map Upstream Route' }}
+      </h3>
+      
+      <div class="form-group">
+        <label class="form-label" for="rt-path">Route Path Template</label>
+        <input class="form-input" type="text" id="rt-path" [(ngModel)]="routePath" placeholder="e.g. /payments/{**catch-all}" required>
+        <span style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem; display: block;">Supports YARP curly bracket path parsing catchments.</span>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Supported Methods</label>
+        <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+          <button *ngFor="let m of ['GET', 'POST', 'PUT', 'DELETE', 'PATCH']" (click)="toggleMethodSelection(m)" type="button" class="btn btn-glass" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;" [class.btn-primary]="routeMethods.includes(m)">
+            {{ m }}
+          </button>
+        </div>
+      </div>
+
+      <div class="form-group" style="margin-bottom: 2rem;">
+        <div class="switch-container" (click)="routeStripPrefix = !routeStripPrefix">
+          <label class="switch">
+            <input type="checkbox" [checked]="routeStripPrefix" readonly>
+            <span class="slider"></span>
+          </label>
+          <div>
+            <span style="display: block; font-size: 0.85rem; font-weight: 600;">Strip Routing Prefix</span>
+            <span style="display: block; font-size: 0.7rem; color: var(--text-muted);">Remove route match template before passing request upstream</span>
+          </div>
+        </div>
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 0.75rem; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 1.25rem;">
+        <button (click)="routeModalOpen = false" class="btn btn-glass">Cancel</button>
+        <button (click)="saveRoute()" class="btn btn-primary">Save Config</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- --- MODAL 2: ADD / EDIT RATE LIMITS --- -->
+  <div *ngIf="rateLimitModalOpen" class="modal-overlay">
+    <div class="modal-content glass-panel">
+      <h3 style="font-size: 1.25rem; font-weight: 800; margin-bottom: 1.5rem; background: var(--title-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+        {{ editingRateLimit ? 'Modify Rate Limit Rule' : 'New Rate Limiter Constraint' }}
+      </h3>
+
+      <div class="form-group">
+        <label class="form-label" for="rl-scope">Limitation Scope</label>
+        <select class="form-select" id="rl-scope" [(ngModel)]="rlScope">
+          <option value="global">Global (All requests)</option>
+          <option value="ip">Client IP Address Override</option>
+          <option value="api-key">Authenticated API Key User</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="rl-alg">Limiting Algorithm</label>
+        <select class="form-select" id="rl-alg" [(ngModel)]="rlAlgorithm">
+          <option value="sliding-window">Sliding Window (Most Precise)</option>
+          <option value="fixed-window">Fixed Window (Standard)</option>
+          <option value="token-bucket">Token Bucket (Supports bursts)</option>
+        </select>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+        <div class="form-group">
+          <label class="form-label" for="rl-req">Allowed Hits</label>
+          <input class="form-input" type="number" id="rl-req" [(ngModel)]="rlRequests" min="1" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="rl-win">Window Time (Sec)</label>
+          <input class="form-input" type="number" id="rl-win" [(ngModel)]="rlWindow" min="1" required>
+        </div>
+      </div>
+
+      <div class="form-group" *ngIf="rlAlgorithm === 'token-bucket'">
+        <label class="form-label" for="rl-burst">Burst Allowance</label>
+        <input class="form-input" type="number" id="rl-burst" [(ngModel)]="rlBurst" min="0">
+        <span style="font-size: 0.7rem; color: var(--text-muted); margin-top: 0.25rem; display: block;">Maximum excess requests client can accumulate to burst limit.</span>
+      </div>
+
+      <div class="form-group" style="margin-bottom: 2rem;">
+        <div class="switch-container" (click)="rlIsActive = !rlIsActive">
+          <label class="switch">
+            <input type="checkbox" [checked]="rlIsActive" readonly>
+            <span class="slider"></span>
+          </label>
+          <div>
+            <span style="display: block; font-size: 0.85rem; font-weight: 600;">Status Active</span>
+            <span style="display: block; font-size: 0.7rem; color: var(--text-muted);">Enable rule check immediately</span>
+          </div>
+        </div>
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 0.75rem; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 1.25rem;">
+        <button (click)="rateLimitModalOpen = false" class="btn btn-glass">Cancel</button>
+        <button (click)="saveRateLimit()" class="btn btn-primary" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);">Save Rule</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- --- MODAL 3: ADD / EDIT ALERTS --- -->
+  <div *ngIf="alertModalOpen" class="modal-overlay">
+    <div class="modal-content glass-panel">
+      <h3 style="font-size: 1.25rem; font-weight: 800; margin-bottom: 1.5rem; background: var(--title-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+        {{ editingAlert ? 'Modify Alert Rule' : 'New Monitor Metric Alert' }}
+      </h3>
+
+      <div class="form-group">
+        <label class="form-label" for="al-name">Alert Label / Title</label>
+        <input class="form-input" type="text" id="al-name" [(ngModel)]="alName" placeholder="e.g. Critical 5xx Server Outages" required>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="al-metric">Metric Trigger Source</label>
+        <select class="form-select" id="al-metric" [(ngModel)]="alMetric" (change)="onAlertMetricChange()">
+          <option value="error-rate">Error status percentage (4xx/5xx ratios)</option>
+          <option value="latency-p95">P95 connection latency (ms)</option>
+          <option value="request-volume">Throughput volume threshold (Hits)</option>
+        </select>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+        <div class="form-group">
+          <label class="form-label" for="al-thresh">Value Threshold</label>
+          <input class="form-input" type="number" id="al-thresh" [(ngModel)]="alThreshold" min="1" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="al-unit">Metric Unit</label>
+          <input class="form-input" type="text" id="al-unit" [ngModel]="alUnit" disabled style="opacity: 0.65; cursor: not-allowed; text-transform: uppercase;">
+        </div>
+      </div>
+
+      <div class="form-group" style="margin-bottom: 2rem;">
+        <div class="switch-container" (click)="alIsActive = !alIsActive">
+          <label class="switch">
+            <input type="checkbox" [checked]="alIsActive" readonly>
+            <span class="slider"></span>
+          </label>
+          <div>
+            <span style="display: block; font-size: 0.85rem; font-weight: 600;">Status Active</span>
+            <span style="display: block; font-size: 0.7rem; color: var(--text-muted);">Track logs metric for triggers</span>
+          </div>
+        </div>
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 0.75rem; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 1.25rem;">
+        <button (click)="alertModalOpen = false" class="btn btn-glass">Cancel</button>
+        <button (click)="saveAlert()" class="btn btn-primary" style="background: linear-gradient(135deg, #d946ef 0%, #c084fc 100%);">Save Monitor</button>
+      </div>
+    </div>
+  </div>
+
+</div>

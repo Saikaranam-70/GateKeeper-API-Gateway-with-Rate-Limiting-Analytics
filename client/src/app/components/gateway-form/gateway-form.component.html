@@ -1,0 +1,62 @@
+<div style="padding: 1.5rem 0; max-width: 680px; margin: 0 auto;">
+  
+  <!-- Back Button & Title -->
+  <div style="margin-bottom: 2rem;">
+    <a routerLink="/dashboard" style="display: inline-flex; align-items: center; gap: 0.5rem; color: var(--text-secondary); text-decoration: none; font-size: 0.9rem; font-weight: 500; transition: var(--transition-smooth); margin-bottom: 1rem;">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="m15 18-6-6 6-6"/>
+      </svg>
+      Back to Dashboard
+    </a>
+    <h1 style="font-size: 2rem; font-weight: 800; letter-spacing: -0.02em; background: var(--title-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Register New Gateway</h1>
+    <p style="color: var(--text-secondary); font-size: 0.95rem;">Configure a proxy connection to target backend services</p>
+  </div>
+
+  <!-- Form Body Glass Panel -->
+  <div class="glass-panel" style="padding: 2.5rem; border-radius: var(--border-radius-lg);">
+    
+    <!-- Error message banner -->
+    <div *ngIf="errorMessage" class="badge-error" style="padding: 0.75rem 1rem; border-radius: var(--border-radius-sm); font-size: 0.85rem; font-weight: 500; margin-bottom: 1.5rem; text-align: center;">
+      {{ errorMessage }}
+    </div>
+
+    <form (submit)="onSubmit($event)">
+      <!-- Name -->
+      <div class="form-group">
+        <label class="form-label" for="gw-name">Gateway Name <span style="color: var(--status-error);">*</span></label>
+        <input class="form-input" type="text" id="gw-name" [(ngModel)]="name" name="name" placeholder="e.g. Payment Gateway" required>
+        <span style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem; display: block;">A unique friendly identifier for your gateway router.</span>
+      </div>
+
+      <!-- Description -->
+      <div class="form-group">
+        <label class="form-label" for="gw-description">Description</label>
+        <textarea class="form-textarea" id="gw-description" [(ngModel)]="description" name="description" placeholder="Describe the purpose, catchments, and target services of this gateway..."></textarea>
+      </div>
+
+      <!-- Target URL -->
+      <div class="form-group">
+        <label class="form-label" for="gw-target">Target Base URL <span style="color: var(--status-error);">*</span></label>
+        <input class="form-input" type="url" id="gw-target" [(ngModel)]="targetBaseUrl" name="targetBaseUrl" placeholder="e.g. https://api.payments.internal:8080" required>
+        <span style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem; display: block;">The upstream endpoint destination where YARP proxies matching traffic.</span>
+      </div>
+
+      <!-- Default Rate Limit -->
+      <div class="form-group" style="margin-bottom: 2.5rem;">
+        <label class="form-label" for="gw-limit">Default Rate Limit (Requests / Min) <span style="color: var(--status-error);">*</span></label>
+        <input class="form-input" type="number" id="gw-limit" [(ngModel)]="defaultRateLimitPerMin" name="defaultRateLimitPerMin" min="1" required>
+        <span style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem; display: block;">Standard limit applied to clients if no specific rate limiting rules match.</span>
+      </div>
+
+      <!-- Actions -->
+      <div style="display: flex; justify-content: flex-end; gap: 1rem; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 1.5rem;">
+        <a routerLink="/dashboard" class="btn btn-glass">Cancel</a>
+        <button class="btn btn-primary" type="submit" [disabled]="loading">
+          <span *ngIf="!loading">Create & Save Gateway</span>
+          <span *ngIf="loading">Creating gateway...</span>
+        </button>
+      </div>
+    </form>
+
+  </div>
+</div>

@@ -1,0 +1,119 @@
+<div style="padding: 1.5rem 0;">
+  
+  <!-- Header -->
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2.5rem; flex-wrap: wrap; gap: 1rem;">
+    <div>
+      <h1 style="font-size: 2rem; font-weight: 800; letter-spacing: -0.02em; background: var(--title-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 0.25rem;">System Diagnostic Status</h1>
+      <p style="color: var(--text-secondary); font-size: 0.95rem;">Monitor infrastructure health metrics, DB connectivity, and control plane stats</p>
+    </div>
+    <button (click)="checkSystemStatus()" class="btn btn-glass" style="padding: 0.5rem 1rem; font-size: 0.85rem;" [disabled]="loading">
+      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
+      </svg>
+      Run Diagnostics
+    </button>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading" style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 300px; gap: 1rem;">
+    <div style="width: 40px; height: 40px; border: 3px solid rgba(255,255,255,0.05); border-top-color: var(--accent-violet); border-radius: 50%; animation: spin 1s linear infinite;"></div>
+    <span style="color: var(--text-secondary); font-size: 0.9rem;">Querying infrastructure components...</span>
+  </div>
+
+  <!-- Loaded Details -->
+  <div *ngIf="!loading && health">
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 2rem;">
+      
+      <!-- Component Health Checks -->
+      <div class="glass-panel" style="padding: 2rem; border-radius: var(--border-radius-lg); display: flex; flex-direction: column; gap: 1.5rem;">
+        <h2 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-cyan)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/>
+            <path d="m9 12 2 2 4-4"/>
+          </svg>
+          Infrastructure Health
+        </h2>
+
+        <!-- Postgres Health -->
+        <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.02); padding: 1rem 1.25rem; border-radius: var(--border-radius-md); border: 1px solid rgba(255,255,255,0.04);">
+          <div>
+            <span style="display: block; font-weight: 600; font-size: 0.95rem;">PostgreSQL Database</span>
+            <span style="display: block; font-size: 0.75rem; color: var(--text-secondary);">User accounts & Gateway configuration store</span>
+          </div>
+          <span class="badge" [class.badge-active]="health.checks.sql.status === 'ok'" [class.badge-error]="health.checks.sql.status !== 'ok'">
+            {{ health.checks.sql.status === 'ok' ? 'HEALTHY' : 'OUTAGE' }}
+          </span>
+        </div>
+
+        <!-- Redis Cache Health -->
+        <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.02); padding: 1rem 1.25rem; border-radius: var(--border-radius-md); border: 1px solid rgba(255,255,255,0.04);">
+          <div>
+            <span style="display: block; font-weight: 600; font-size: 0.95rem;">Redis Cache / Rate Limiting</span>
+            <span *ngIf="health.checks.redis.pingMs" style="display: block; font-size: 0.75rem; color: var(--text-secondary);">Ping Latency: <strong>{{ health.checks.redis.pingMs | number:'1.1-2' }} ms</strong></span>
+            <span *ngIf="!health.checks.redis.pingMs" style="display: block; font-size: 0.75rem; color: var(--text-secondary);">High-speed cache node connection</span>
+          </div>
+          <span class="badge" [class.badge-active]="health.checks.redis.status === 'ok'" [class.badge-error]="health.checks.redis.status !== 'ok'">
+            {{ health.checks.redis.status === 'ok' ? 'HEALTHY' : 'OUTAGE' }}
+          </span>
+        </div>
+
+        <!-- YARP Gateway Health -->
+        <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.02); padding: 1rem 1.25rem; border-radius: var(--border-radius-md); border: 1px solid rgba(255,255,255,0.04);">
+          <div>
+            <span style="display: block; font-weight: 600; font-size: 0.95rem;">YARP Reverse Proxy</span>
+            <span style="display: block; font-size: 0.75rem; color: var(--text-secondary);">Live HTTP forwarding engine</span>
+          </div>
+          <span class="badge" [class.badge-active]="health.checks.yarp.status === 'ok'" [class.badge-error]="health.checks.yarp.status !== 'ok'">
+            {{ health.checks.yarp.status === 'ok' ? 'HEALTHY' : 'OUTAGE' }}
+          </span>
+        </div>
+      </div>
+
+      <!-- Network latency & statistics -->
+      <div style="display: flex; flex-direction: column; gap: 2rem;">
+        
+        <!-- RTT Latency Box -->
+        <div class="glass-panel" style="padding: 2rem; border-radius: var(--border-radius-lg); text-align: center; border-color: rgba(99, 102, 241, 0.15); box-shadow: var(--glow-shadow-violet);">
+          <span style="display: block; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-secondary); margin-bottom: 0.5rem;">API Round-Trip Speed (RTT)</span>
+          <div style="font-size: 3rem; font-weight: 800; color: var(--text-primary); letter-spacing: -0.02em; display: flex; align-items: baseline; justify-content: center; gap: 0.25rem;">
+            {{ apiLatencyMs }}
+            <span style="font-size: 1.25rem; font-weight: 600; color: var(--text-secondary);">ms</span>
+          </div>
+          <span style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-top: 0.5rem;">Time elapsed during dashboard-to-API control plane ping requests.</span>
+        </div>
+
+        <!-- Admin Stats Panel -->
+        <div *ngIf="isAdmin && adminStats" class="glass-panel" style="padding: 2rem; border-radius: var(--border-radius-lg); display: flex; flex-direction: column; gap: 1.25rem;">
+          <h2 style="font-size: 1.1rem; font-weight: 700; display: flex; align-items: center; gap: 0.5rem;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent-pink)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            </svg>
+            Global Platform Aggregates
+          </h2>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+            <div style="background: rgba(255,255,255,0.01); border: 1px solid rgba(255,255,255,0.03); padding: 0.75rem 1rem; border-radius: var(--border-radius-sm);">
+              <span style="display: block; font-size: 0.75rem; color: var(--text-muted);">DEVELOPERS</span>
+              <strong style="font-size: 1.5rem; color: var(--text-primary);">{{ adminStats.totalUsers }}</strong>
+            </div>
+            <div style="background: rgba(255,255,255,0.01); border: 1px solid rgba(255,255,255,0.03); padding: 0.75rem 1rem; border-radius: var(--border-radius-sm);">
+              <span style="display: block; font-size: 0.75rem; color: var(--text-muted);">GATEWAYS</span>
+              <strong style="font-size: 1.5rem; color: var(--text-primary);">{{ adminStats.totalGateways }}</strong>
+            </div>
+            <div style="background: rgba(255,255,255,0.01); border: 1px solid rgba(255,255,255,0.03); padding: 0.75rem 1rem; border-radius: var(--border-radius-sm);">
+              <span style="display: block; font-size: 0.75rem; color: var(--text-muted);">MONITOR ALERTS</span>
+              <strong style="font-size: 1.5rem; color: var(--text-primary);">{{ adminStats.totalAlerts }}</strong>
+            </div>
+            <div style="background: rgba(255,255,255,0.01); border: 1px solid rgba(255,255,255,0.03); padding: 0.75rem 1rem; border-radius: var(--border-radius-sm);">
+              <span style="display: block; font-size: 0.75rem; color: var(--text-muted);">ACTIVE ALERTS</span>
+              <strong style="font-size: 1.5rem; color: var(--status-active);">{{ adminStats.activeAlerts }}</strong>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+</div>
