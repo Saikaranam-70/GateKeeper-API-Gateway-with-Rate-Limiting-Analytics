@@ -3,7 +3,7 @@
 @apiKeyId = YOUR_API_KEY_UUID_HERE
 
 # Paste your JWT token from Login response here
-@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI3NTdkMzUwNy1kOWI1LTQ2OGUtYjRmOC02ZWY4NWFlNzNkNDIiLCJlbWFpbCI6InNhaWthcmFuYW05QGdtYWlsLmNvbSIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6IlVTRVIiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1lIjoiU2FpIEthcmFuYW0iLCJleHAiOjE3ODQwNTA1MDcsImlzcyI6IkdhdGVLZWVwZXIiLCJhdWQiOiJHYXRlS2VlcGVyVXNlcnMifQ.9cYKrswg0O6ZJjMyFR8WxpvPThk8qU97Tge_WG_Ze-M
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI2ZWQxMzNkNS1lOTk5LTQ4MTctYjA4Yy1hNDYyMWY1ZmRhYzQiLCJlbWFpbCI6InNhaW1hbmlrYW50YWthcmFuYW02ODJAZ21haWwuY29tIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjoiVVNFUiIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL25hbWUiOiJLYXJhbmFtIFNhaSIsImV4cCI6MTc4NDQ1NDkwMiwiaXNzIjoiR2F0ZUtlZXBlciIsImF1ZCI6IkdhdGVLZWVwZXJVc2VycyJ9.ox-h7ZhLEo5GWwABMlZtXTLfQfBZkLw-fzo7ST_wIL0
 
 ### 1. Test Dummy End-to-End API (Queries DB time & Increments Redis hit counter)
 GET {{server_HostAddress}}/api/dummy
@@ -30,7 +30,7 @@ Content-Type: application/json
 Accept: application/json
 
 {
-  "email": "saikaranam9@gmail.com",
+  "email": "saimanikantakaranam682@gmail.com",
   "password": "Sai@7065"
 }
 

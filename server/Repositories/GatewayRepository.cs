@@ -123,4 +123,12 @@ public class GatewayRepository : IGatewayRepository
         await connection.ExecuteAsync(sql, route);
     }
 
+    public async Task InsertRequestLogsAsync(IEnumerable<RequestLog> logs)
+    {
+        using var connection = _factory.CreateConnection();
+        var sql = @"
+            INSERT INTO request_logs (gateway_id, api_key_id, method, path, status_code, latency_ms, client_ip, is_rate_limited, timestamp)
+            VALUES (@GatewayId, @ApiKeyId, @Method, @Path, @StatusCode, @LatencyMs, @ClientIp, @IsRateLimited, @Timestamp)";
+        await connection.ExecuteAsync(sql, logs);
+    }
 }

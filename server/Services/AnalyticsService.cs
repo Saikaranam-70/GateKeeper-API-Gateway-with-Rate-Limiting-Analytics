@@ -11,19 +11,19 @@ public class AnalyticsService : IAnalyticsService
         _gatewayRepository = gatewayRepository;
     }
 
-    public async Task<TrafficSummaryResponseDTO> GetTrafficSummaryAsync(Guid gatewayId, Guid userId, DateTime? from, DateTime? to, int windowHours)
+    public async Task<IEnumerable<TrafficMetricResponseDTO>> GetTrafficSummaryAsync(Guid gatewayId, Guid userId, DateTime? from, DateTime? to, int windowHours)
     {
         await EnsureGatewayAccessAsync(gatewayId, userId);
         return await _repository.GetTrafficSummaryAsync(gatewayId, from, to, windowHours);
     }
 
-    public async Task<LatencyAnalyticsResponseDTO> GetLatencyAnalyticsAsync(Guid gatewayId, Guid userId, DateTime? from, DateTime? to, int windowHours)
+    public async Task<IEnumerable<LatencyMetricResponseDTO>> GetLatencyAnalyticsAsync(Guid gatewayId, Guid userId, DateTime? from, DateTime? to, int windowHours)
     {
         await EnsureGatewayAccessAsync(gatewayId, userId);
         return await _repository.GetLatencyAnalyticsAsync(gatewayId, from, to, windowHours);
     }
 
-    public async Task<ErrorAnalyticsResponseDTO> GetErrorAnalyticsAsync(Guid gatewayId, Guid userId, DateTime? from, DateTime? to, int windowHours)
+    public async Task<IEnumerable<ErrorMetricResponseDTO>> GetErrorAnalyticsAsync(Guid gatewayId, Guid userId, DateTime? from, DateTime? to, int windowHours)
     {
         await EnsureGatewayAccessAsync(gatewayId, userId);
         return await _repository.GetErrorAnalyticsAsync(gatewayId, from, to, windowHours);

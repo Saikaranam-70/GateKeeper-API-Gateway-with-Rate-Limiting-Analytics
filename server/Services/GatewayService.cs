@@ -13,6 +13,8 @@ public class GatewayService : IGatewayService
     private readonly IGatewayRepository _repository;  // was wrongly public
     private readonly ICacheService _cache;             // was wrongly public
 
+    private record RoutePathInfo(string Path, string[] Methods);
+
     public GatewayService(IGatewayRepository repository, ICacheService cache)
     {
         _repository = repository;
@@ -234,7 +236,82 @@ public class GatewayService : IGatewayService
             throw new NotFoundException("Gateway not found.");
         }
 
-        return new { gatewayId = id, simulated = true, message = "Traffic simulation request accepted." };
+        var routes = (await _repository.GetAllRoutesByGatewayIdAsync(id)).ToList();
+        
+        // Define fallback paths if no routes exist
+        var paths = routes.Count > 0 
+            ? routes.Select(r => new RoutePathInfo(r.Path, (r.Methods ?? "GET").Split(',', StringSplitOptions.RemoveEmptyEntries))).ToList()
+            : new List<RoutePathInfo> 
+              { 
+                  new RoutePathInfo("/api/health", new[] { "GET" }),
+                  new RoutePathInfo("/api/users", new[] { "GET", "POST" }),
+                  new RoutePathInfo("/api/products", new[] { "GET" })
+              };
+
+        var random = new Random();
+        var logs = new List<RequestLog>();
+        var count = 60 + random.Next(21); // 60 to 80 records
+        
+        var mockIps = new[] { "192.168.1.50", "203.0.113.19", "198.51.100.42", "172.16.254.1" };
+
+        for (int i = 0; i < count; i++)
+        {
+            var route = paths[random.Next(paths.Count)];
+            string method = route.Methods[random.Next(route.Methods.Length)];
+            
+            // Randomize status code
+            int statusCode = 200;
+            var chance = random.Next(100);
+            if (chance < 85)
+            {
+                statusCode = method == "POST" ? 201 : 200;
+            }
+            else if (chance < 90)
+            {
+                statusCode = 429; // Rate limited
+            }
+            else if (chance < 95)
+            {
+                statusCode = random.Next(2) == 0 ? 401 : 404;
+            }
+            else
+            {
+                statusCode = 500; // Internal Server Error
+            }
+
+            // Latency
+            int latency = random.Next(15, 300);
+            if (statusCode == 500)
+            {
+                latency = random.Next(500, 2000);
+            }
+            else if (statusCode == 429)
+            {
+                latency = random.Next(2, 20); // Rate limit responses are very fast
+            }
+
+            // Timestamp spread across past 24 hours
+            var timeOffsetSeconds = random.Next(0, 24 * 3600);
+            var timestamp = DateTime.UtcNow.AddSeconds(-timeOffsetSeconds);
+
+            var log = new RequestLog
+            {
+                GatewayId = id,
+                Method = method,
+                Path = route.Path,
+                StatusCode = statusCode,
+                LatencyMs = latency,
+                ClientIp = mockIps[random.Next(mockIps.Length)],
+                IsRateLimited = statusCode == 429,
+                Timestamp = timestamp
+            };
+            logs.Add(log);
+        }
+
+        // Insert into database
+        await _repository.InsertRequestLogsAsync(logs);
+
+        return new { gatewayId = id, simulated = true, totalSimulated = count, message = "Traffic simulation completed successfully." };
     }
 
     public async Task<GatewayResponseDTO> UpdateGatewayStatusAsync(Guid id, string? status, Guid userId)

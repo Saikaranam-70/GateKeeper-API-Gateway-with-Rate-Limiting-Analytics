@@ -86,12 +86,12 @@
 
       <!-- Toggle Status and Dangerous actions -->
       <div style="border-top: 1px solid rgba(255,255,255,0.05); padding-top: 2rem; margin-top: 1rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1.5rem;">
-        <div class="switch-container" (click)="toggleGatewayStatus()">
+        <div class="switch-container">
           <label class="switch">
             <input type="checkbox" [checked]="gateway.status === 'active'" disabled>
             <span class="slider"></span>
           </label>
-          <div>
+          <div (click)="toggleGatewayStatus()" style="cursor: pointer;">
             <span style="display: block; font-size: 0.9rem; font-weight: 600;">Tunnel Status</span>
             <span style="display: block; font-size: 0.75rem; color: var(--text-muted);">Enable or disable proxy routing instantly</span>
           </div>
@@ -421,10 +421,10 @@
 
         <!-- Filter status badges -->
         <div style="display: flex; gap: 0.35rem; flex-wrap: wrap;">
-          <button (click)="filterLogsByStatus(null)" class="btn btn-glass" style="padding: 0.35rem 0.75rem; font-size: 0.75rem; border-radius: 50px;" [class.btn-primary]="logsStatusFilter === null">All</button>
-          <button (click)="filterLogsByStatus(200)" class="btn btn-glass" style="padding: 0.35rem 0.75rem; font-size: 0.75rem; border-radius: 50px;" [class.btn-primary]="logsStatusFilter === 200">2xx Success</button>
-          <button (click)="filterLogsByStatus(429)" class="btn btn-glass" style="padding: 0.35rem 0.75rem; font-size: 0.75rem; border-radius: 50px;" [class.btn-primary]="logsStatusFilter === 429">429 Rate Limited</button>
-          <button (click)="filterLogsByStatus(500)" class="btn btn-glass" style="padding: 0.35rem 0.75rem; font-size: 0.75rem; border-radius: 50px;" [class.btn-primary]="logsStatusFilter === 500">5xx Server Errors</button>
+          <button (click)="filterLogsByStatus(null)" class="btn" style="padding: 0.35rem 0.75rem; font-size: 0.75rem; border-radius: 50px;" [class.btn-primary]="logsStatusFilter === null" [class.btn-glass]="logsStatusFilter !== null">All</button>
+          <button (click)="filterLogsByStatus(200)" class="btn" style="padding: 0.35rem 0.75rem; font-size: 0.75rem; border-radius: 50px;" [class.btn-primary]="logsStatusFilter === 200" [class.btn-glass]="logsStatusFilter !== 200">2xx Success</button>
+          <button (click)="filterLogsByStatus(429)" class="btn" style="padding: 0.35rem 0.75rem; font-size: 0.75rem; border-radius: 50px;" [class.btn-primary]="logsStatusFilter === 429" [class.btn-glass]="logsStatusFilter !== 429">429 Rate Limited</button>
+          <button (click)="filterLogsByStatus(500)" class="btn" style="padding: 0.35rem 0.75rem; font-size: 0.75rem; border-radius: 50px;" [class.btn-primary]="logsStatusFilter === 500" [class.btn-glass]="logsStatusFilter !== 500">5xx Server Errors</button>
         </div>
       </div>
 
@@ -516,19 +516,19 @@
       <div class="form-group">
         <label class="form-label">Supported Methods</label>
         <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
-          <button *ngFor="let m of ['GET', 'POST', 'PUT', 'DELETE', 'PATCH']" (click)="toggleMethodSelection(m)" type="button" class="btn btn-glass" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;" [class.btn-primary]="routeMethods.includes(m)">
+          <button *ngFor="let m of ['GET', 'POST', 'PUT', 'DELETE', 'PATCH']" (click)="toggleMethodSelection(m)" type="button" class="btn" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;" [class.btn-primary]="routeMethods.includes(m)" [class.btn-glass]="!routeMethods.includes(m)">
             {{ m }}
           </button>
         </div>
       </div>
 
       <div class="form-group" style="margin-bottom: 2rem;">
-        <div class="switch-container" (click)="routeStripPrefix = !routeStripPrefix">
+        <div class="switch-container">
           <label class="switch">
-            <input type="checkbox" [checked]="routeStripPrefix" readonly>
+            <input type="checkbox" [(ngModel)]="routeStripPrefix" name="routeStripPrefix">
             <span class="slider"></span>
           </label>
-          <div>
+          <div (click)="routeStripPrefix = !routeStripPrefix" style="cursor: pointer;">
             <span style="display: block; font-size: 0.85rem; font-weight: 600;">Strip Routing Prefix</span>
             <span style="display: block; font-size: 0.7rem; color: var(--text-muted);">Remove route match template before passing request upstream</span>
           </div>
@@ -585,12 +585,12 @@
       </div>
 
       <div class="form-group" style="margin-bottom: 2rem;">
-        <div class="switch-container" (click)="rlIsActive = !rlIsActive">
+        <div class="switch-container">
           <label class="switch">
-            <input type="checkbox" [checked]="rlIsActive" readonly>
+            <input type="checkbox" [(ngModel)]="rlIsActive" name="rlIsActive">
             <span class="slider"></span>
           </label>
-          <div>
+          <div (click)="rlIsActive = !rlIsActive" style="cursor: pointer;">
             <span style="display: block; font-size: 0.85rem; font-weight: 600;">Status Active</span>
             <span style="display: block; font-size: 0.7rem; color: var(--text-muted);">Enable rule check immediately</span>
           </div>
@@ -637,12 +637,12 @@
       </div>
 
       <div class="form-group" style="margin-bottom: 2rem;">
-        <div class="switch-container" (click)="alIsActive = !alIsActive">
+        <div class="switch-container">
           <label class="switch">
-            <input type="checkbox" [checked]="alIsActive" readonly>
+            <input type="checkbox" [(ngModel)]="alIsActive" name="alIsActive">
             <span class="slider"></span>
           </label>
-          <div>
+          <div (click)="alIsActive = !alIsActive" style="cursor: pointer;">
             <span style="display: block; font-size: 0.85rem; font-weight: 600;">Status Active</span>
             <span style="display: block; font-size: 0.7rem; color: var(--text-muted);">Track logs metric for triggers</span>
           </div>
