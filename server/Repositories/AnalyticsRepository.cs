@@ -10,91 +10,68 @@ public class AnalyticsRepository : IAnalyticsRepository
         _factory = factory;
     }
 
-    public async Task<TrafficSummaryResponseDTO> GetTrafficSummaryAsync(Guid gatewayId, DateTime? from, DateTime? to, int windowHours)
+    public async Task<IEnumerable<TrafficMetricResponseDTO>> GetTrafficSummaryAsync(Guid gatewayId, DateTime? from, DateTime? to, int windowHours)
     {
         using var connection = _factory.CreateConnection();
 
         var sql = @"
             SELECT
+                date_trunc('hour', timestamp) AS Timestamp,
                 COUNT(*)::int AS TotalRequests,
-                SUM(CASE WHEN status_code >= 200 AND status_code < 400 THEN 1 ELSE 0 END)::int AS SuccessfulRequests,
-                SUM(CASE WHEN status_code >= 400 THEN 1 ELSE 0 END)::int AS ErrorRequests,
-                SUM(CASE WHEN is_rate_limited = TRUE THEN 1 ELSE 0 END)::int AS RateLimitedRequests,
-                AVG(latency_ms)::float AS AverageLatencyMs
-            FROM request_logs
-            WHERE gateway_id = @GatewayId
-              AND (@From IS NULL OR timestamp >= @From)
-              AND (@To IS NULL OR timestamp <= @To)
-              AND (@WindowHours IS NULL OR timestamp >= NOW() - (@WindowHours || ' hours')::interval)";
-
-        var result = await connection.QuerySingleAsync<TrafficSummaryResponseDTO>(sql, new { GatewayId = gatewayId, From = from, To = to, WindowHours = windowHours });
-
-        if (result.TotalRequests > 0)
-        {
-            result.SuccessRate = Math.Round((double)result.SuccessfulRequests / result.TotalRequests * 100, 2);
-        }
-        else
-        {
-            result.SuccessRate = 0;
-        }
-
-        result.WindowHours = windowHours;
-        return result;
-    }
-
-    public async Task<LatencyAnalyticsResponseDTO> GetLatencyAnalyticsAsync(Guid gatewayId, DateTime? from, DateTime? to, int windowHours)
-    {
-        using var connection = _factory.CreateConnection();
-
-        var sql = @"
-            SELECT
-                path AS Route,
-                COUNT(*)::int AS RequestCount,
-                percentile_cont(0.50) WITHIN GROUP (ORDER BY latency_ms) AS P50Ms,
-                percentile_cont(0.95) WITHIN GROUP (ORDER BY latency_ms) AS P95Ms,
-                percentile_cont(0.99) WITHIN GROUP (ORDER BY latency_ms) AS P99Ms
-            FROM request_logs
-            WHERE gateway_id = @GatewayId
-              AND (@From IS NULL OR timestamp >= @From)
-              AND (@To IS NULL OR timestamp <= @To)
-              AND (@WindowHours IS NULL OR timestamp >= NOW() - (@WindowHours || ' hours')::interval)
-            GROUP BY path
-            ORDER BY RequestCount DESC";
-
-        var rows = await connection.QueryAsync<LatencyPointResponseDTO>(sql, new { GatewayId = gatewayId, From = from, To = to, WindowHours = windowHours });
-
-        return new LatencyAnalyticsResponseDTO
-        {
-            WindowHours = windowHours,
-            Points = rows.ToList()
-        };
-    }
-
-    public async Task<ErrorAnalyticsResponseDTO> GetErrorAnalyticsAsync(Guid gatewayId, DateTime? from, DateTime? to, int windowHours)
-    {
-        using var connection = _factory.CreateConnection();
-
-        var sql = @"
-            SELECT
-                date_trunc('hour', timestamp) AS Bucket,
-                SUM(CASE WHEN status_code >= 400 AND status_code < 500 THEN 1 ELSE 0 END)::int AS FourXXCount,
-                SUM(CASE WHEN status_code >= 500 THEN 1 ELSE 0 END)::int AS FiveXXCount,
-                COUNT(*)::int AS TotalRequests
+                SUM(CASE WHEN status_code >= 200 AND status_code < 400 THEN 1 ELSE 0 END)::int AS SuccessCount,
+                SUM(CASE WHEN is_rate_limited = TRUE THEN 1 ELSE 0 END)::int AS RateLimitedCount,
+                SUM(CASE WHEN status_code >= 400 THEN 1 ELSE 0 END)::int AS ErrorCount
             FROM request_logs
             WHERE gateway_id = @GatewayId
               AND (@From IS NULL OR timestamp >= @From)
               AND (@To IS NULL OR timestamp <= @To)
               AND (@WindowHours IS NULL OR timestamp >= NOW() - (@WindowHours || ' hours')::interval)
             GROUP BY date_trunc('hour', timestamp)
-            ORDER BY Bucket ASC";
+            ORDER BY Timestamp ASC";
 
-        var rows = await connection.QueryAsync<ErrorPointResponseDTO>(sql, new { GatewayId = gatewayId, From = from, To = to, WindowHours = windowHours });
+        return await connection.QueryAsync<TrafficMetricResponseDTO>(sql, new { GatewayId = gatewayId, From = from, To = to, WindowHours = windowHours });
+    }
 
-        return new ErrorAnalyticsResponseDTO
-        {
-            WindowHours = windowHours,
-            Points = rows.ToList()
-        };
+    public async Task<IEnumerable<LatencyMetricResponseDTO>> GetLatencyAnalyticsAsync(Guid gatewayId, DateTime? from, DateTime? to, int windowHours)
+    {
+        using var connection = _factory.CreateConnection();
+
+        var sql = @"
+            SELECT
+                date_trunc('hour', timestamp) AS Timestamp,
+                COALESCE(AVG(latency_ms), 0)::float AS AvgLatencyMs,
+                COALESCE(percentile_cont(0.50) WITHIN GROUP (ORDER BY latency_ms), 0)::float AS P50LatencyMs,
+                COALESCE(percentile_cont(0.95) WITHIN GROUP (ORDER BY latency_ms), 0)::float AS P95LatencyMs,
+                COALESCE(percentile_cont(0.99) WITHIN GROUP (ORDER BY latency_ms), 0)::float AS P99LatencyMs
+            FROM request_logs
+            WHERE gateway_id = @GatewayId
+              AND (@From IS NULL OR timestamp >= @From)
+              AND (@To IS NULL OR timestamp <= @To)
+              AND (@WindowHours IS NULL OR timestamp >= NOW() - (@WindowHours || ' hours')::interval)
+            GROUP BY date_trunc('hour', timestamp)
+            ORDER BY Timestamp ASC";
+
+        return await connection.QueryAsync<LatencyMetricResponseDTO>(sql, new { GatewayId = gatewayId, From = from, To = to, WindowHours = windowHours });
+    }
+
+    public async Task<IEnumerable<ErrorMetricResponseDTO>> GetErrorAnalyticsAsync(Guid gatewayId, DateTime? from, DateTime? to, int windowHours)
+    {
+        using var connection = _factory.CreateConnection();
+
+        var sql = @"
+            SELECT
+                status_code AS StatusCode,
+                COUNT(*)::int AS Count
+            FROM request_logs
+            WHERE gateway_id = @GatewayId
+              AND status_code >= 400
+              AND (@From IS NULL OR timestamp >= @From)
+              AND (@To IS NULL OR timestamp <= @To)
+              AND (@WindowHours IS NULL OR timestamp >= NOW() - (@WindowHours || ' hours')::interval)
+            GROUP BY status_code
+            ORDER BY Count DESC";
+
+        return await connection.QueryAsync<ErrorMetricResponseDTO>(sql, new { GatewayId = gatewayId, From = from, To = to, WindowHours = windowHours });
     }
 
     public async Task<PaginatedRequestLogsResponseDTO> GetRequestLogsAsync(Guid gatewayId, DateTime? from, DateTime? to, int? statusCode, int page, int limit)

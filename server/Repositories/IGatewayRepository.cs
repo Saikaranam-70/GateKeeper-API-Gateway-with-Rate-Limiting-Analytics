@@ -15,4 +15,5 @@ public interface IGatewayRepository
     Task DeleteRouteAsync(Guid routeId);
     Task<IEnumerable<RouteConfig>> GetAllRoutesByGatewayIdAsync(Guid id);
     Task UpdateRouteAsync(RouteConfig route);
+    Task InsertRequestLogsAsync(IEnumerable<RequestLog> logs);
 }

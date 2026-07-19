@@ -1,41 +1,27 @@
-public class TrafficSummaryResponseDTO
+using System;
+
+public class TrafficMetricResponseDTO
 {
+    public DateTime Timestamp { get; set; }
     public int TotalRequests { get; set; }
-    public int SuccessfulRequests { get; set; }
-    public int ErrorRequests { get; set; }
-    public int RateLimitedRequests { get; set; }
-    public double AverageLatencyMs { get; set; }
-    public double SuccessRate { get; set; }
-    public int WindowHours { get; set; } = 24;
+    public int SuccessCount { get; set; }
+    public int RateLimitedCount { get; set; }
+    public int ErrorCount { get; set; }
 }
 
-public class LatencyPointResponseDTO
+public class LatencyMetricResponseDTO
 {
-    public string Route { get; set; } = string.Empty;
-    public double P50Ms { get; set; }
-    public double P95Ms { get; set; }
-    public double P99Ms { get; set; }
-    public int RequestCount { get; set; }
+    public DateTime Timestamp { get; set; }
+    public double AvgLatencyMs { get; set; }
+    public double P50LatencyMs { get; set; }
+    public double P95LatencyMs { get; set; }
+    public double P99LatencyMs { get; set; }
 }
 
-public class LatencyAnalyticsResponseDTO
+public class ErrorMetricResponseDTO
 {
-    public List<LatencyPointResponseDTO> Points { get; set; } = new();
-    public int WindowHours { get; set; } = 24;
-}
-
-public class ErrorPointResponseDTO
-{
-    public DateTime Bucket { get; set; }
-    public int FourXXCount { get; set; }
-    public int FiveXXCount { get; set; }
-    public int TotalRequests { get; set; }
-}
-
-public class ErrorAnalyticsResponseDTO
-{
-    public List<ErrorPointResponseDTO> Points { get; set; } = new();
-    public int WindowHours { get; set; } = 24;
+    public int StatusCode { get; set; }
+    public int Count { get; set; }
 }
 
 public class RequestLogItemResponseDTO

@@ -245,11 +245,13 @@ export class GatewayDetailComponent implements OnInit, OnDestroy {
     if (idx > -1) {
       if (this.routeMethods.length > 1) {
         this.routeMethods.splice(idx, 1);
+        this.routeMethods = [...this.routeMethods];
       } else {
         this.toastService.showInfo('A route must support at least one HTTP method.');
       }
     } else {
       this.routeMethods.push(method);
+      this.routeMethods = [...this.routeMethods];
     }
   }
 
