@@ -15,6 +15,21 @@ DROP TABLE IF EXISTS route_configs;
 DROP TABLE IF EXISTS gateways;
 
 -- ============================================================
+-- Migrate users table to UUID if it's still using BIGINT
+-- ============================================================
+ALTER TABLE users 
+ADD COLUMN IF NOT EXISTS id_new UUID DEFAULT gen_random_uuid();
+
+UPDATE users SET id_new = gen_random_uuid() WHERE id_new IS NULL;
+
+ALTER TABLE users DROP CONSTRAINT IF EXISTS users_pkey CASCADE;
+ALTER TABLE users DROP COLUMN id;
+ALTER TABLE users RENAME COLUMN id_new TO id;
+ALTER TABLE users ADD PRIMARY KEY (id);
+
+CREATE UNIQUE INDEX IF NOT EXISTS ix_users_email ON users(email);
+
+-- ============================================================
 -- Recreate all tables with UUID ids
 -- ============================================================
 
