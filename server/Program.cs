@@ -107,6 +107,9 @@ builder.Services.AddOpenApi();
 
 var app = builder.Build();
 
+// Enable CORS at the very top of the pipeline so preflight OPTIONS and error responses return CORS headers
+app.UseCors("AllowClient");
+
 // Global Exception Handler Middleware
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 
@@ -115,7 +118,6 @@ app.MapOpenApi();
 
 // Enable routing and controller mapping
 app.UseRouting();
-app.UseCors("AllowClient");
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
