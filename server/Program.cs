@@ -94,7 +94,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowClient", policy =>
     {
-        policy.WithOrigins("http://localhost:4200", "http://127.0.0.1:4200")
+        policy.SetIsOriginAllowed(_ => true)
               .AllowAnyMethod()
               .AllowAnyHeader()
               .AllowCredentials();
@@ -107,8 +107,6 @@ builder.Services.AddOpenApi();
 
 var app = builder.Build();
 
-app.UseCors("AllowClient");
-
 // Global Exception Handler Middleware
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 
@@ -117,6 +115,7 @@ app.MapOpenApi();
 
 // Enable routing and controller mapping
 app.UseRouting();
+app.UseCors("AllowClient");
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
