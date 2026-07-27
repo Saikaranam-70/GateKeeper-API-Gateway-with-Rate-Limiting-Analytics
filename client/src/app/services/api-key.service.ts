@@ -2,6 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, of, tap } from 'rxjs';
 import { CacheService } from './cache.service';
+import { environment } from '../../environments/environment';
 
 export interface ApiKey {
   id?: string;
@@ -22,7 +23,7 @@ export class ApiKeyService {
   private http = inject(HttpClient);
   private cacheService = inject(CacheService);
 
-  private apiUrl = 'http://localhost:5041/api/api-keys';
+  private apiUrl = `${environment.apiUrl}/api-keys`;
 
   /**
    * Get all API keys (cached for 15 seconds).

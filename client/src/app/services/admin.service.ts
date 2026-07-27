@@ -2,6 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, of, tap } from 'rxjs';
 import { CacheService } from './cache.service';
+import { environment } from '../../environments/environment';
 
 export interface HealthCheckResult {
   status: string;
@@ -27,8 +28,8 @@ export class AdminService {
   private http = inject(HttpClient);
   private cacheService = inject(CacheService);
 
-  private adminUrl = 'http://localhost:5041/api/admin';
-  private healthUrl = 'http://localhost:5041/api/health';
+  private adminUrl = `${environment.apiUrl}/admin`;
+  private healthUrl = `${environment.apiUrl}/health`;
 
   /**
    * Get Platform Stats (cached for 10 seconds).

@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, of, tap } from 'rxjs';
 import { CacheService } from './cache.service';
 import { PaginatedResult } from './rate-limit.service';
+import { environment } from '../../environments/environment';
 
 export interface TrafficMetric {
   timestamp: string;
@@ -46,7 +47,7 @@ export class AnalyticsService {
   private http = inject(HttpClient);
   private cacheService = inject(CacheService);
 
-  private apiUrl = 'http://localhost:5041/api/analytics';
+  private apiUrl = `${environment.apiUrl}/analytics`;
 
   /**
    * Fetch Traffic Summary (cached for 5 seconds).

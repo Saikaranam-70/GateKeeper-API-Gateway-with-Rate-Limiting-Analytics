@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, of, tap } from 'rxjs';
 import { CacheService } from './cache.service';
 import { PaginatedResult } from './rate-limit.service';
+import { environment } from '../../environments/environment';
 
 export interface AlertRule {
   id?: string;
@@ -24,7 +25,7 @@ export class AlertService {
   private http = inject(HttpClient);
   private cacheService = inject(CacheService);
 
-  private apiUrl = 'http://localhost:5041/api/alerts';
+  private apiUrl = `${environment.apiUrl}/alerts`;
 
   /**
    * Helper to invalidate cache keys.
