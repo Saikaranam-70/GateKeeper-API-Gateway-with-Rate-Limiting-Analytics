@@ -1,0 +1,40 @@
+services:
+  # Web Service: ASP.NET Core Backend API
+  - type: web
+    name: gatekeeper-api
+    runtime: docker
+    dockerfilePath: ./server/Dockerfile
+    dockerContext: ./server
+    region: oregon
+    plan: free
+    envVars:
+      - key: ConnectionStrings__Postgres
+        fromDatabase:
+          name: gatekeeper-db
+          property: connectionString
+      - key: ConnectionStrings__Redis
+        sync: false # Set your Upstash or Redis connection string in Render Dashboard
+      - key: JwtSettings__Secret
+        generateValue: true
+      - key: JwtSettings__Issuer
+        value: api-gateway.local
+      - key: JwtSettings__Audience
+        value: YourClient
+      - key: Smtp__Host
+        value: smtp.gmail.com
+      - key: Smtp__Port
+        value: "587"
+      - key: Smtp__EnableSsl
+        value: "true"
+      - key: Smtp__User
+        sync: false # Set your Gmail address in Render Dashboard
+      - key: Smtp__Password
+        sync: false # Set your Google App Password in Render Dashboard
+
+databases:
+  # Managed PostgreSQL Database
+  - name: gatekeeper-db
+    databaseName: GateKeeper
+    user: postgres
+    region: oregon
+    plan: free

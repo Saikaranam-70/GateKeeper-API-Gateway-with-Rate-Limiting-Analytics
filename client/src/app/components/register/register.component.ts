@@ -34,10 +34,10 @@ export class RegisterComponent {
     this.errorMessage = '';
 
     this.authService.register(this.name, this.email, this.password).subscribe({
-      next: () => {
+      next: (res: any) => {
         this.loading = false;
-        this.toastService.showSuccess('Registered successfully! Please log in.');
-        this.router.navigate(['/login']);
+        this.toastService.showSuccess('Registration successful! Please verify your email OTP code.');
+        this.router.navigate(['/verify-otp'], { queryParams: { email: this.email } });
       },
       error: (err) => {
         this.loading = false;

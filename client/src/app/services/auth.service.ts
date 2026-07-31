@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, BehaviorSubject, tap, map, catchError, of } from 'rxjs';
+import { Observable, BehaviorSubject, tap } from 'rxjs';
 import { CacheService } from './cache.service';
 import { environment } from '../../environments/environment';
 
@@ -18,11 +18,16 @@ export class AuthService {
   private cacheService = inject(CacheService);
 
   private apiUrl = environment.apiUrl;
-  private currentUserSubject = new BehaviorSubject<User | null>(null);
+  
+  // Initialize synchronously from localStorage to fix dashboard refresh issue
+  private currentUserSubject = new BehaviorSubject<User | null>(this.getStoredUser());
   public currentUser$ = this.currentUserSubject.asObservable();
 
   constructor() {
-    this.loadCurrentUser();
+    // If token exists, refresh user profile in background
+    if (this.isAuthenticated()) {
+      this.loadCurrentUser();
+    }
   }
 
   /**
@@ -40,10 +45,31 @@ export class AuthService {
   }
 
   /**
-   * Remove token.
+   * Save user to localStorage.
    */
-  removeToken(): void {
+  setStoredUser(user: User): void {
+    localStorage.setItem('gatekeeper_user', JSON.stringify(user));
+  }
+
+  /**
+   * Retrieve user from localStorage.
+   */
+  getStoredUser(): User | null {
+    const raw = localStorage.getItem('gatekeeper_user');
+    if (!raw) return null;
+    try {
+      return JSON.parse(raw);
+    } catch {
+      return null;
+    }
+  }
+
+  /**
+   * Remove token and stored user.
+   */
+  removeAuthData(): void {
     localStorage.removeItem('gatekeeper_token');
+    localStorage.removeItem('gatekeeper_user');
   }
 
   /**
@@ -61,17 +87,60 @@ export class AuthService {
   }
 
   /**
-   * Log in user and save JWT token.
+   * Log in user and save JWT token & user.
    */
   login(email: string, password: string): Observable<any> {
     return this.http.post<any>(`${this.apiUrl}/user/login`, { email, password }).pipe(
       tap((res: any) => {
         if (res && res.token) {
           this.setToken(res.token);
-          this.loadCurrentUser();
+          if (res.user) {
+            this.setStoredUser(res.user);
+            this.currentUserSubject.next(res.user);
+          } else {
+            this.loadCurrentUser();
+          }
         }
       })
     );
+  }
+
+  /**
+   * Verify email OTP code.
+   */
+  verifyOtp(email: string, otpCode: string): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/user/verify-otp`, { email, otpCode }).pipe(
+      tap((res: any) => {
+        if (res && res.token) {
+          this.setToken(res.token);
+          if (res.user) {
+            this.setStoredUser(res.user);
+            this.currentUserSubject.next(res.user);
+          }
+        }
+      })
+    );
+  }
+
+  /**
+   * Resend verification OTP code.
+   */
+  resendOtp(email: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/user/resend-otp`, { email });
+  }
+
+  /**
+   * Request password reset OTP code.
+   */
+  forgotPassword(email: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/user/forgot-password`, { email });
+  }
+
+  /**
+   * Reset password with OTP code and new password.
+   */
+  resetPassword(email: string, otpCode: string, newPassword: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/user/reset-password`, { email, otpCode, newPassword });
   }
 
   /**
@@ -83,22 +152,19 @@ export class AuthService {
       return;
     }
 
-    // Cache user profile for 60 seconds
     const cacheKey = `${this.apiUrl}/auth/me`;
-    const cachedUser = this.cacheService.get(cacheKey);
-
-    if (cachedUser) {
-      this.currentUserSubject.next(cachedUser);
-      return;
-    }
 
     this.http.get<User>(`${this.apiUrl}/auth/me`).subscribe({
       next: (user: User) => {
         this.cacheService.set(cacheKey, user, 60);
+        this.setStoredUser(user);
         this.currentUserSubject.next(user);
       },
-      error: () => {
-        this.logout();
+      error: (err) => {
+        // ONLY log out if 401 Unauthorized, to prevent accidental logout on network or 500 errors
+        if (err && err.status === 401) {
+          this.logout();
+        }
       }
     });
   }
@@ -107,7 +173,7 @@ export class AuthService {
    * Log out user, remove token, clear cache, and reset user subject.
    */
   logout(): void {
-    this.removeToken();
+    this.removeAuthData();
     this.cacheService.clear();
     this.currentUserSubject.next(null);
   }

@@ -1,0 +1,56 @@
+<div class="auth-wrapper" style="min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 2rem;">
+  <div class="glass-panel" style="width: 100%; max-width: 440px; padding: 2.5rem; border-radius: var(--border-radius-lg); position: relative; box-shadow: var(--glass-shadow);">
+    
+    <!-- Header -->
+    <div style="text-align: center; margin-bottom: 2rem;">
+      <div style="display: inline-flex; align-items: center; justify-content: center; width: 56px; height: 56px; border-radius: 50%; background: rgba(99, 102, 241, 0.1); border: 1px solid rgba(99, 102, 241, 0.2); margin-bottom: 1.25rem;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--accent-violet)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M22 13V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h11"/>
+          <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>
+          <path d="m16 19 2 2 4-4"/>
+        </svg>
+      </div>
+      <h2 style="font-size: 1.5rem; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 0.5rem; background: var(--title-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Email Verification</h2>
+      <p style="font-size: 0.875rem; color: var(--text-secondary);">Enter the 6-digit OTP code sent to your email</p>
+    </div>
+
+    <!-- Error Message Banner -->
+    <div *ngIf="errorMessage" class="badge-error" style="padding: 0.75rem 1rem; border-radius: var(--border-radius-sm); font-size: 0.85rem; font-weight: 500; margin-bottom: 1.5rem; text-align: center;">
+      {{ errorMessage }}
+    </div>
+
+    <!-- Form -->
+    <form (submit)="onSubmit($event)">
+      <div class="form-group">
+        <label class="form-label" for="email">Work Email</label>
+        <input class="form-input" type="email" id="email" [(ngModel)]="email" name="email" placeholder="name@company.com" required>
+      </div>
+
+      <div class="form-group" style="margin-bottom: 2rem;">
+        <label class="form-label" for="otpCode">6-Digit OTP Verification Code</label>
+        <input class="form-input" type="text" id="otpCode" [(ngModel)]="otpCode" name="otpCode" placeholder="123456" maxlength="6" required style="font-size: 1.25rem; letter-spacing: 4px; text-align: center; font-weight: 700;">
+      </div>
+
+      <button class="btn btn-primary" type="submit" style="width: 100%; height: 48px;" [disabled]="loading">
+        <span *ngIf="!loading">Verify Email & Continue</span>
+        <span *ngIf="loading">Verifying Code...</span>
+      </button>
+    </form>
+
+    <!-- Resend OTP option -->
+    <div style="text-align: center; margin-top: 2rem; font-size: 0.875rem; color: var(--text-secondary);">
+      Didn't receive the code? 
+      <button (click)="resendOtp()" [disabled]="cooldownSeconds > 0 || resending" style="background: none; border: none; color: var(--accent-violet); font-weight: 600; cursor: pointer; text-decoration: underline; padding: 0; margin-left: 0.25rem;">
+        <span *ngIf="cooldownSeconds === 0 && !resending">Resend OTP</span>
+        <span *ngIf="resending">Sending...</span>
+        <span *ngIf="cooldownSeconds > 0">Resend in {{ cooldownSeconds }}s</span>
+      </button>
+    </div>
+
+    <!-- Back to Login -->
+    <div style="text-align: center; margin-top: 1rem; font-size: 0.85rem;">
+      <a routerLink="/login" style="color: var(--text-secondary); text-decoration: none;">&larr; Back to Sign In</a>
+    </div>
+
+  </div>
+</div>

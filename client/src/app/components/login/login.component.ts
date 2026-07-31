@@ -40,6 +40,11 @@ export class LoginComponent {
       },
       error: (err) => {
         this.loading = false;
+        if (err.error?.requiresVerification) {
+          this.toastService.showInfo('Please verify your email address to continue.');
+          this.router.navigate(['/verify-otp'], { queryParams: { email: this.email } });
+          return;
+        }
         this.errorMessage = err.error?.message || 'Login failed. Please check your credentials.';
         this.toastService.showError(this.errorMessage);
       }

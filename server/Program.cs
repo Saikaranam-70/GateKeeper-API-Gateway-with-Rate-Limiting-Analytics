@@ -27,6 +27,8 @@ builder.Services.AddScoped<IAlertService, AlertService>();
 builder.Services.AddScoped<IAlertRepository, AlertRepository>();
 builder.Services.AddScoped<IRateLimitRuleService, RateLimitRuleService>();
 builder.Services.AddScoped<IRateLimitRuleRepository, RateLimitRuleRepository>();
+builder.Services.AddScoped<IEmailService, GoogleSmtpEmailService>();
+
 
 // Redis Setup
 var redisConnStr = builder.Configuration.GetConnectionString("Redis");
