@@ -1,0 +1,12 @@
+# GateKeeper API Gateway Robots.txt
+User-agent: *
+Allow: /
+Allow: /login
+Allow: /register
+Allow: /forgot-password
+Allow: /verify-otp
+Disallow: /api/
+
+# Host & Sitemap Specification
+Host: https://gatekeeper-api-4jwa.onrender.com
+Sitemap: https://gatekeeper-api-4jwa.onrender.com/sitemap.xml
