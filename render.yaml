@@ -8,6 +8,8 @@ services:
     region: oregon
     plan: free
     envVars:
+      - key: DOTNET_USE_POLLING_FILE_WATCHER
+        value: "true"
       - key: ConnectionStrings__Postgres
         fromDatabase:
           name: gatekeeper-db

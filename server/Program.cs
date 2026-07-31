@@ -6,7 +6,11 @@ using Microsoft.IdentityModel.Tokens;
 using StackExchange.Redis;
 using System.Text;
 
+// Bypasses Linux kernel inotify limit (128) on Render/Docker environments
+Environment.SetEnvironmentVariable("DOTNET_USE_POLLING_FILE_WATCHER", "1");
+
 var builder = WebApplication.CreateBuilder(args);
+
 
 // Enable snake_case mapping globally for Dapper
 Dapper.DefaultTypeMap.MatchNamesWithUnderscores = true;
